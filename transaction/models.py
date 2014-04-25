@@ -7,6 +7,9 @@ class Pricing(models.Model):
     markup = models.FloatField()
     ghs_usd = models.FloatField()
 
+    def __unicode__(self):
+        return '{pk} ({markup} %)'.format(pk=self.pk, markup=self.markup)
+
 
 class Transaction(models.Model):
 
@@ -37,5 +40,4 @@ class Transaction(models.Model):
     cancelled_at = models.DateField(null=True)
     declined_at = models.DateField(null=True)
     penalty_in_usd = models.FloatField(default=0.0, blank=True)
-    pricing = models.ForeignKey(Pricing, related_name='transactions',
-                                null=True)
+    pricing = models.ForeignKey(Pricing, related_name='transactions')
