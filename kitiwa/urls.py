@@ -16,8 +16,8 @@ urlpatterns = patterns(
         include('superuser.urls', namespace='superuser')
     ),
     url(
-        r'^transactions/',
-        include('transaction.urls', namespace='transactions')
+        r'^api/v1/',
+        include('transaction.urls', namespace='api')
     ),
     url(r'^admin/', include(admin.site.urls)),
 )

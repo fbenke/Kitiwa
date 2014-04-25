@@ -3,6 +3,6 @@ from transaction.serializers import TransactionSerializer
 from rest_framework import generics
 
 
-class TransactionInitialization(generics.CreateAPIView):
+class TransactionAPI(generics.ListCreateAPIView):
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer

@@ -4,8 +4,9 @@ from transaction import views
 
 urlpatterns = patterns(
     '',
-    url(r'^init/$', views.TransactionInitialization.as_view(),
-        name="transaction-init"),
+    url(r'^transaction/$', views.TransactionAPI.as_view(),
+        name='transaction'),
+
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)
