@@ -26,3 +26,12 @@ class TransactionSerializer(serializers.ModelSerializer):
                 'provide either an email or btc wallet address (not both)'
             )
         return attrs
+
+
+class UpdateTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = (
+            'state', 'initialized_at', 'paid_at', 'processed_at',
+            'cancelled_at', 'declined_at', 'penalty_in_usd',
+        )
