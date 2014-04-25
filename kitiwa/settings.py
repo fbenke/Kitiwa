@@ -101,4 +101,8 @@ REST_FRAMEWORK = {
     )
 }
 
+'''
+TODO: This should be changed when the site goes live. Only the
+domains of the angular apps should be allowed using CORS_ORIGIN_WHITELIST
+'''
 CORS_ORIGIN_ALLOW_ALL = True
