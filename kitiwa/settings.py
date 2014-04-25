@@ -27,6 +27,7 @@ DJANGO_APPS = (
 THIRD_PARTY_APPS = (
     'gunicorn',
     'south',
+    'rest_framework',
 )
 
 LOCAL_APPS = (
