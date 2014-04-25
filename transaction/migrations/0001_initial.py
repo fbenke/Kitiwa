@@ -12,7 +12,7 @@ class Migration(SchemaMigration):
         db.create_table(u'transaction_pricing', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('start', self.gf('django.db.models.fields.DateTimeField')()),
-            ('end', self.gf('django.db.models.fields.DateTimeField')()),
+            ('end', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
             ('markup', self.gf('django.db.models.fields.FloatField')()),
             ('ghs_usd', self.gf('django.db.models.fields.FloatField')()),
         ))
@@ -21,8 +21,8 @@ class Migration(SchemaMigration):
         # Adding model 'Transaction'
         db.create_table(u'transaction_transaction', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('email', self.gf('django.db.models.fields.EmailField')(max_length=30, blank=True)),
-            ('btc_wallet_address', self.gf('django.db.models.fields.CharField')(max_length=34, blank=True)),
+            ('email', self.gf('django.db.models.fields.EmailField')(default='', max_length=30, blank=True)),
+            ('btc_wallet_address', self.gf('django.db.models.fields.CharField')(default='', max_length=34, blank=True)),
             ('notification_phone_number', self.gf('django.db.models.fields.CharField')(max_length=15)),
             ('amount_ghs', self.gf('django.db.models.fields.FloatField')()),
             ('amount_usd', self.gf('django.db.models.fields.FloatField')()),
@@ -49,7 +49,7 @@ class Migration(SchemaMigration):
     models = {
         u'transaction.pricing': {
             'Meta': {'object_name': 'Pricing'},
-            'end': ('django.db.models.fields.DateTimeField', [], {}),
+            'end': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'ghs_usd': ('django.db.models.fields.FloatField', [], {}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'markup': ('django.db.models.fields.FloatField', [], {}),
@@ -59,10 +59,10 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Transaction'},
             'amount_ghs': ('django.db.models.fields.FloatField', [], {}),
             'amount_usd': ('django.db.models.fields.FloatField', [], {}),
-            'btc_wallet_address': ('django.db.models.fields.CharField', [], {'max_length': '34', 'blank': 'True'}),
+            'btc_wallet_address': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '34', 'blank': 'True'}),
             'cancelled_at': ('django.db.models.fields.DateField', [], {'null': 'True'}),
             'declined_at': ('django.db.models.fields.DateField', [], {'null': 'True'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '30', 'blank': 'True'}),
+            'email': ('django.db.models.fields.EmailField', [], {'default': "''", 'max_length': '30', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'initialized_at': ('django.db.models.fields.DateField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'notification_phone_number': ('django.db.models.fields.CharField', [], {'max_length': '15'}),

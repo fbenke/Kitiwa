@@ -29,13 +29,13 @@ THIRD_PARTY_APPS = (
     'south',
     'rest_framework',
     'rest_framework.authtoken',
-    'corsheaders'
+    'corsheaders',
 )
 
 LOCAL_APPS = (
     'kitiwa',
     'transaction',
-    'superuser'
+    'superuser',
 )
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

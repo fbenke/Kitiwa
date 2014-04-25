@@ -11,6 +11,13 @@ urlpatterns = patterns(
         template_name='robots.txt', content_type='text/plain'), name='robots'),
     url(r'^humans\.txt$', TemplateView.as_view(
         template_name='humans.txt', content_type='text/plain'), name='humans'),
-    url(r'^superuser/', include('superuser.urls')),
+    url(
+        r'^superuser/',
+        include('superuser.urls', namespace='superuser')
+    ),
+    url(
+        r'^transactions/',
+        include('transaction.urls', namespace='transactions')
+    ),
     url(r'^admin/', include(admin.site.urls)),
 )
