@@ -5,7 +5,7 @@ import dj_database_url
 BASE_DIR = lambda *x: os.path.join(os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.path.pardir)).replace('\\', '/'), *x)
 
-# From Enviroment Variables
+# From Environment Variables
 DEBUG = bool(int(os.environ.get('DEBUG', '1')))
 
 TEMPLATE_DEBUG = bool(int(os.environ.get('TEMPLATE_DEBUG', '1')))
@@ -27,11 +27,15 @@ DJANGO_APPS = (
 THIRD_PARTY_APPS = (
     'gunicorn',
     'south',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders'
 )
 
 LOCAL_APPS = (
     'kitiwa',
     'transaction',
+    'superuser'
 )
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -44,6 +48,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 )
 
 ROOT_URLCONF = 'kitiwa.urls'
@@ -89,3 +94,11 @@ LOGGING = {
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
+
+CORS_ORIGIN_ALLOW_ALL = True
