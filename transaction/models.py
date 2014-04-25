@@ -9,7 +9,7 @@ class Pricing(models.Model):
     ghs_usd = models.FloatField()
 
     def __unicode__(self):
-        return '{pk} ({markup} %)'.format(pk=self.pk, markup=self.markup)
+        return '{markup} %'.format(markup=self.markup)
 
     @staticmethod
     def get_current_pricing():

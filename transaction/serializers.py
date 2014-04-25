@@ -6,11 +6,13 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = (
-            'email', 'btc_wallet_address', 'notification_phone_number',
-            'amount_ghs', 'amount_usd',
+            'id', 'email', 'btc_wallet_address', 'notification_phone_number',
+            'amount_ghs', 'amount_usd', 'state', 'initialized_at', 'paid_at',
+            'processed_at', 'cancelled_at', 'declined_at', 'penalty_in_usd',
+            'pricing'
         )
         read_only_fields = (
-            'state', 'initialized_at', 'paid_at', 'processed_at',
+            'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
         )
 
