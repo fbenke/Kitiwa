@@ -41,10 +41,10 @@ class Transaction(models.Model):
     state = models.CharField(max_length=4,
                              choices=TRANSACTION_STATUS, default=INIT)
     initialized_at = models.DateField(auto_now_add=True)
-    paid_at = models.DateField(null=True)
-    processed_at = models.DateField(null=True)
-    cancelled_at = models.DateField(null=True)
-    declined_at = models.DateField(null=True)
+    paid_at = models.DateField(null=True, blank=True)
+    processed_at = models.DateField(null=True, blank=True)
+    cancelled_at = models.DateField(null=True, blank=True)
+    declined_at = models.DateField(null=True, blank=True)
     penalty_in_usd = models.FloatField(blank=True, default=0.0)
     pricing = models.ForeignKey(Pricing, related_name='transactions')
 
