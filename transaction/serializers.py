@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from transaction.models import Transaction
+import re
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -27,11 +28,16 @@ class TransactionSerializer(serializers.ModelSerializer):
             )
         return attrs
 
+    def validate_btc_wallet_address(self, attrs, source):
+        """
+        27 - 34 alphanumeric, first one is 1 or 3
+        """
 
-class UpdateTransactionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = (
-            'state', 'initialized_at', 'paid_at', 'processed_at',
-            'cancelled_at', 'declined_at', 'penalty_in_usd',
-        )
+        if not re.match(r'^[1,3][a-zA-Z0-9]{26,33}$', attrs[source]):
+            raise serializers.ValidationError(
+                'this is not a valid bitcoin address')
+        return attrs
+
+
+    # TODO: validation of the confirmation phone number
+    # TODO: validation of amount in ghs and usd?

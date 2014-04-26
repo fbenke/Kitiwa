@@ -5,17 +5,15 @@ from transaction.models import Transaction
 from transaction import serializers
 from rest_framework import viewsets
 from rest_framework import status
+from rest_framework.throttling import AnonRateThrottle
 
 
 # TODO: Enable IsAdminUser permission on GET all transactions and Update transaction
 class TransactionViewSet(viewsets.ModelViewSet):
 
     paginate_by = 20
-
-    def get_serializer_class(self):
-        if self.action == 'update':
-            return serializers.UpdateTransactionSerializer
-        return serializers.TransactionSerializer
+    serializer_class = serializers.TransactionSerializer
+    throttle_classes = (AnonRateThrottle,)
 
     def get_queryset(self):
         queryset = Transaction.objects.all()
