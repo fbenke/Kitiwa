@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, url
+from superuser.views import ObtainStaffAuthToken
 
 urlpatterns = patterns(
     '',
-    url(r'^api/v1/login/', 'rest_framework.authtoken.views.obtain_auth_token'),
+    url(r'^api/v1/login/', ObtainStaffAuthToken.as_view()),
     url(r'^api/v1/logout/', 'superuser.views.api_logout'),
 )
