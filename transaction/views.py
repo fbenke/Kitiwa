@@ -1,18 +1,20 @@
+from rest_framework import viewsets
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
-from transaction.models import Transaction
-from transaction import serializers
-from rest_framework import viewsets
-from rest_framework import status
 from rest_framework.throttling import AnonRateThrottle
 
+from transaction.models import Transaction
+from transaction import serializers
+from transaction import permissions
 
-# TODO: Enable IsAdminUser permission on GET all transactions and Update transaction
+
 class TransactionViewSet(viewsets.ModelViewSet):
 
     paginate_by = 20
     serializer_class = serializers.TransactionSerializer
+    permission_classes = (permissions.IsAdminOrPostOnly,)
     throttle_classes = (AnonRateThrottle,)
 
     def get_queryset(self):
@@ -28,9 +30,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
 def accept(request):
     # Expects a comma separated list of ids as a POST param called ids
     try:
-        transactions = Transaction.objects.filter(id__in=request.POST.get('ids', None).split(','))
+        transactions = Transaction.objects.filter(
+            id__in=request.POST.get('ids', None).split(','))
         if not transactions:
-            return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': 'Invalid ID'},
+                            status=status.HTTP_400_BAD_REQUEST)
 
         # If any transaction is not PAID, fail the whole request
         for t in transactions:
@@ -45,4 +49,5 @@ def accept(request):
         transactions.update(state=Transaction.PROCESSED)
         return Response({'status': 'success'})
     except (Transaction.DoesNotExist, ValueError, AttributeError):
-        return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Invalid ID'},
+                        status=status.HTTP_400_BAD_REQUEST)

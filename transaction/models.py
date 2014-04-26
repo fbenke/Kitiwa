@@ -35,7 +35,6 @@ class Transaction(models.Model):
     )
 
     email = models.EmailField(max_length=30, blank=True, default='')
-    # 27 - 34 alphanumeric characters
     btc_wallet_address = models.CharField(max_length=34,
                                           blank=True, default='')
     notification_phone_number = models.CharField(max_length=15)

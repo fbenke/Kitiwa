@@ -33,9 +33,13 @@ class TransactionSerializer(serializers.ModelSerializer):
         27 - 34 alphanumeric, first one is 1 or 3
         """
 
+        if attrs[source] == '':
+            return attrs
+
         if not re.match(r'^[1,3][a-zA-Z0-9]{26,33}$', attrs[source]):
             raise serializers.ValidationError(
                 'this is not a valid bitcoin address')
+
         return attrs
 
 

@@ -16,7 +16,8 @@ urlpatterns = patterns(
     url(r'^transaction/$', transaction_list, name='transaction'),
     url(r'^transaction/(?P<pk>[0-9]+)/$', snippet_detail,
         name='transaction-detail'),
-    url(r'^transaction/accept/$', 'transaction.views.accept', name='transaction-accept'),
+    url(r'^transaction/accept/$', 'transaction.views.accept',
+        name='transaction-accept'),
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)
