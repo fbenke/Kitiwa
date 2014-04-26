@@ -6,11 +6,7 @@ from rest_framework import viewsets
 class TransactionViewSet(viewsets.ModelViewSet):
 
     paginate_by = 20
-
-    def get_serializer_class(self):
-        if self.action == 'update':
-            return serializers.UpdateTransactionSerializer
-        return serializers.TransactionSerializer
+    serializer_class = serializers.TransactionSerializer
 
     def get_queryset(self):
         queryset = Transaction.objects.all()

@@ -9,7 +9,6 @@ transaction_list = views.TransactionViewSet.as_view({
 
 snippet_detail = views.TransactionViewSet.as_view({
     'get': 'retrieve',
-    'put': 'update',
 })
 
 urlpatterns = patterns(
