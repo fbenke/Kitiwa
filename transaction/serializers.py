@@ -39,6 +39,5 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
 
-
     # TODO: validation of the confirmation phone number
     # TODO: validation of amount in ghs and usd?
