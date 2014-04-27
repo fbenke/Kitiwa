@@ -10,11 +10,12 @@ class TransactionSerializer(serializers.ModelSerializer):
             'id', 'email', 'btc_wallet_address', 'notification_phone_number',
             'amount_ghs', 'amount_usd', 'state', 'initialized_at', 'paid_at',
             'processed_at', 'cancelled_at', 'declined_at', 'penalty_in_usd',
-            'pricing'
+            'pricing', 'processed_exchange_rate', 'amount_btc',
         )
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
+            'processed_exchange_rate', 'amount_btc',
         )
 
     def validate(self, attrs):

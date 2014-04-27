@@ -21,6 +21,7 @@ class Transaction(models.Model):
     class Meta:
         ordering = ['id']
 
+    # Constants
     INIT = 'INIT'
     PAID = 'PAID'
     CANCELLED = 'CANC'
@@ -34,22 +35,93 @@ class Transaction(models.Model):
         (PROCESSED, 'processed'),
     )
 
-    email = models.EmailField(max_length=30, blank=True, default='')
-    # 27 - 34 alphanumeric characters
-    btc_wallet_address = models.CharField(max_length=34,
-                                          blank=True, default='')
-    notification_phone_number = models.CharField(max_length=15)
-    amount_ghs = models.FloatField()
-    amount_usd = models.FloatField()
-    state = models.CharField(max_length=4,
-                             choices=TRANSACTION_STATUS, default=INIT)
-    initialized_at = models.DateTimeField(auto_now_add=True)
-    paid_at = models.DateTimeField(null=True, blank=True)
-    processed_at = models.DateTimeField(null=True, blank=True)
-    cancelled_at = models.DateTimeField(null=True, blank=True)
-    declined_at = models.DateTimeField(null=True, blank=True)
-    penalty_in_usd = models.FloatField(blank=True, default=0.0)
-    pricing = models.ForeignKey(Pricing, related_name='transactions')
+    # Fields
+    email = models.EmailField(
+        'Email',
+        max_length=30,
+        blank=True,
+        default='',
+        help_text='Email to send BTCs to'
+    )
+    btc_wallet_address = models.CharField(
+        'BTC Wallet Address',
+        max_length=34,
+        blank=True,
+        default='',
+        help_text='Wallet to send BTCs to. 27 - 34 alphanumeric characters'
+    )
+    notification_phone_number = models.CharField(
+        'Notification Phone Number',
+        max_length=15,
+        help_text='Phone number for notification'
+    )
+    amount_ghs = models.FloatField(
+        'GHS to Kitiwa',
+        help_text='GHS to be paid to Kitiwa'
+    )
+    amount_usd = models.FloatField(
+        'USD worth of BTC',
+        help_text='USD worth of BTCs to be transferred to customer'
+    )
+    amount_btc = models.FloatField(
+        'BTC transferred',
+        null=True,
+        blank=True,
+        help_text='BTCs transferred to the customer'
+    )
+    processed_exchange_rate = models.FloatField(
+        'USD/BTC rate transfer rate',
+        null=True,
+        blank=True,
+        help_text='Exchange rate used to convert usd to btc right before transferring (for time see field processed at)'
+    )
+    state = models.CharField(
+        'State',
+        max_length=4,
+        choices=TRANSACTION_STATUS,
+        default=INIT,
+        help_text='State of the transaction'
+    )
+    initialized_at = models.DateTimeField(
+        'Initialized at',
+        auto_now_add=True,
+        help_text='Time at which transaction was created by user'
+    )
+    paid_at = models.DateTimeField(
+        'Paid at',
+        null=True,
+        blank=True,
+        help_text='Time at which payment was confirmed with payment gateway'
+    )
+    processed_at = models.DateTimeField(
+        'Processed at',
+        null=True,
+        blank=True,
+        help_text='Time at which BTC were sent to customer'
+    )
+    cancelled_at = models.DateTimeField(
+        'Cancelled at',
+        null=True,
+        blank=True,
+        help_text='Time at which the customer cancelled the transaction'
+    )
+    declined_at = models.DateTimeField(
+        'Declined at',
+        null=True,
+        blank=True,
+        help_text='Time at which the transaction was declined by payment gateway'
+    )
+    penalty_in_usd = models.FloatField(
+        'Penalty (USD)',
+        blank=True,
+        default=0.0,
+        help_text='Penalty paid (in USD) due to delay in processing BTC transfer (processed at >>> paid at)'
+    )
+    pricing = models.ForeignKey(
+        Pricing,
+        related_name='transactions',
+        help_text='Pricing information to enable amount_usd and amount_ghs relation (exchange rate and markup)'
+    )
 
     def save(self, *args, **kwargs):
         self.pricing = Pricing.get_current_pricing()
