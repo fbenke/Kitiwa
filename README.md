@@ -11,6 +11,7 @@ DATABASE_URL=postgres://username:password@host:port/dbname
 DEBUG=1
 TEMPLATE_DEBUG=0
 SECRET_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+BLOCKCHAIN_GUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
 Generate a secret key using:
