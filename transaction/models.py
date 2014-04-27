@@ -47,13 +47,6 @@ class Transaction(models.Model):
     )
 
     # Fields
-    email = models.EmailField(
-        'Email',
-        max_length=30,
-        blank=True,
-        default='',
-        help_text='Email to send BTCs to'
-    )
     btc_wallet_address = models.CharField(
         'BTC Wallet Address',
         max_length=34,

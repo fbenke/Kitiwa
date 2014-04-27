@@ -7,7 +7,7 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = (
-            'id', 'email', 'btc_wallet_address', 'notification_phone_number',
+            'id', 'btc_wallet_address', 'notification_phone_number',
             'amount_usd', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
             'processed_exchange_rate', 'amount_ghs', 'amount_btc',
@@ -19,17 +19,6 @@ class TransactionSerializer(serializers.ModelSerializer):
             'processed_exchange_rate', 'amount_ghs', 'amount_btc',
             'mpower_token',
         )
-
-    def validate(self, attrs):
-        """
-        Check that either email or btc_wallet_address is provided (XOR)
-        """
-
-        if not ((attrs['email'] == '') ^ (attrs['btc_wallet_address'] == '')):
-            raise serializers.ValidationError(
-                'provide either an email or btc wallet address (not both)'
-            )
-        return attrs
 
     def validate_btc_wallet_address(self, attrs, source):
         """
