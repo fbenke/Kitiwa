@@ -1,9 +1,11 @@
 from django.db import models
+from django.core.exceptions import ObjectDoesNotExist
+from datetime import datetime
 
 
 class Pricing(models.Model):
 
-    start = models.DateTimeField()
+    start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(blank=True, null=True)
     markup = models.FloatField()
     ghs_usd = models.FloatField()
@@ -14,6 +16,14 @@ class Pricing(models.Model):
     @staticmethod
     def get_current_pricing():
         return Pricing.objects.get(end__isnull=True)
+
+    def end_previous_pricing(self):
+        try:
+            previous_pricing = Pricing.objects.get(end__isnull=True)
+            previous_pricing.end = datetime.now()
+            previous_pricing.save()
+        except ObjectDoesNotExist:
+            pass
 
 
 class Transaction(models.Model):
@@ -49,6 +59,9 @@ class Transaction(models.Model):
     declined_at = models.DateTimeField(null=True, blank=True)
     penalty_in_usd = models.FloatField(blank=True, default=0.0)
     pricing = models.ForeignKey(Pricing, related_name='transactions')
+
+    # mpower specific fields
+    mpower_token = models.CharField(max_length=30, blank=True, default='')
 
     def save(self, *args, **kwargs):
         self.pricing = Pricing.get_current_pricing()

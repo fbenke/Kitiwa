@@ -3,7 +3,8 @@ from transaction.models import Pricing, Transaction
 
 
 class PricingAdmin(admin.ModelAdmin):
-    fields = ('start', 'end', 'markup', 'ghs_usd', )
+    fields = ('id', 'start', 'end', 'markup', 'ghs_usd', )
+    readonly_fields = ('id', 'start', )
 
 
 class TransactionAdmin(admin.ModelAdmin):

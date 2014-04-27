@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from transaction.models import Transaction
+from transaction.models import Transaction, Pricing
 import re
 
 
@@ -10,11 +10,12 @@ class TransactionSerializer(serializers.ModelSerializer):
             'id', 'email', 'btc_wallet_address', 'notification_phone_number',
             'amount_ghs', 'amount_usd', 'state', 'initialized_at', 'paid_at',
             'processed_at', 'cancelled_at', 'declined_at', 'penalty_in_usd',
-            'pricing'
+            'pricing', 'mpower_token'
         )
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
+            'mpower_token'
         )
 
     def validate(self, attrs):
@@ -45,3 +46,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     # TODO: validation of the confirmation phone number
     # TODO: validation of amount in ghs and usd?
+
+class PricingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pricing
+        fields = ('markup', 'ghs_usd')

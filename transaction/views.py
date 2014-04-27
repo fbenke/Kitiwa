@@ -25,6 +25,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+class PricingViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.PricingSerializer
+    permission_classes = (IsAdminUser,)
+
+    def pre_save(self, obj):
+        obj.end_previous_pricing()
+
+
 @api_view(['POST'])
 @permission_classes((IsAdminUser,))
 def accept(request):
