@@ -8,14 +8,16 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = (
             'id', 'email', 'btc_wallet_address', 'notification_phone_number',
-            'amount_ghs', 'amount_usd', 'state', 'initialized_at', 'paid_at',
-            'processed_at', 'cancelled_at', 'declined_at', 'penalty_in_usd',
-            'pricing', 'processed_exchange_rate', 'amount_btc', 'mpower_token',
+            'amount_usd', 'state', 'initialized_at', 'paid_at', 'processed_at',
+            'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
+            'processed_exchange_rate', 'amount_ghs', 'amount_btc',
+            'mpower_token',
         )
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
-            'processed_exchange_rate', 'amount_btc', 'mpower_token',
+            'processed_exchange_rate', 'amount_ghs', 'amount_btc',
+            'mpower_token',
         )
 
     def validate(self, attrs):
@@ -43,9 +45,10 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def validate_notification_phone_number(self, attrs, source):
+        # TODO: validation of the confirmation phone number
+        return attrs
 
-    # TODO: validation of the confirmation phone number
-    # TODO: validation of amount in ghs and usd?
 
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:

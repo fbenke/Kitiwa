@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 import time
 from rest_framework.throttling import AnonRateThrottle
-from transaction.models import Transaction
+from transaction.models import Transaction, Pricing
 from transaction import serializers
 from transaction import permissions
 
@@ -30,7 +30,7 @@ class PricingViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminUser,)
 
     def pre_save(self, obj):
-        obj.end_previous_pricing()
+        Pricing.end_previous_pricing()
 
 
 @api_view(['POST'])
