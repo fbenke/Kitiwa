@@ -17,7 +17,8 @@ class Pricing(models.Model):
     def get_current_pricing():
         return Pricing.objects.get(end__isnull=True)
 
-    def end_previous_pricing(self):
+    @staticmethod
+    def end_previous_pricing():
         try:
             previous_pricing = Pricing.objects.get(end__isnull=True)
             previous_pricing.end = datetime.now()
@@ -143,4 +144,6 @@ class Transaction(models.Model):
 
     def save(self, *args, **kwargs):
         self.pricing = Pricing.get_current_pricing()
+        usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
+        self.amount_ghs = usd_in_ghs * (1 + self.pricing.markup)
         super(Transaction, self).save(*args, **kwargs)
