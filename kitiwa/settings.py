@@ -117,8 +117,12 @@ CORS_ORIGIN_ALLOW_ALL = True
 BLOCKCHAIN_GUID = os.environ.get('BLOCKCHAIN_GUID')
 BLOCKCHAIN_API_URL = 'https://blockchain.info/merchant/' + BLOCKCHAIN_GUID
 BLOCKCHAIN_API_BALANCE = BLOCKCHAIN_API_URL + '/balance/'
+BLOCKCHAIN_API_SENDMANY = BLOCKCHAIN_API_URL + '/sendmany/'
+BLOCKCHAIN_TICKER = 'https://blockchain.info/ticker'
 
 BITSTAMP_API_URL = 'https://www.bitstamp.net/api/'
 BITSTAMP_API_TICKER = BITSTAMP_API_URL + 'ticker/'
 
 OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_id=dc2e5940109a49249841672fa39c7ccd'
+
+ONE_SATOSHI = 100000000

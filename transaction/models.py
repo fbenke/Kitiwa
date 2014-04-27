@@ -73,11 +73,11 @@ class Transaction(models.Model):
         'USD worth of BTC',
         help_text='USD worth of BTCs to be transferred to customer'
     )
-    amount_btc = models.FloatField(
-        'BTC transferred',
+    amount_btc = models.IntegerField(
+        'Satoshi transferred',
         null=True,
         blank=True,
-        help_text='BTCs transferred to the customer'
+        help_text='BTCs transferred to the customer. amount_usd / exchange_rate in satoshi, rounded up.'
     )
     processed_exchange_rate = models.FloatField(
         'USD/BTC rate transfer rate',

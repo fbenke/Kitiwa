@@ -1,3 +1,6 @@
+import math
+from django.utils.datetime_safe import datetime
+import requests
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -5,6 +8,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 import time
 from rest_framework.throttling import AnonRateThrottle
+from kitiwa.settings import BLOCKCHAIN_TICKER, ONE_SATOSHI, BLOCKCHAIN_API_SENDMANY
 from transaction.models import Transaction
 from transaction import serializers
 from transaction import permissions
@@ -69,10 +73,57 @@ def accept(request):
         #
         # http://blockchain.info/api/blockchain_wallet_api
         # Not confident about security yet simulate call using sleep
-        time.sleep(3)
 
-        transactions.update(state=Transaction.PROCESSED)
-        return Response({'status': 'success'})
+        get_rate = requests.get(BLOCKCHAIN_TICKER)
+        rate = None
+        get_rate_error = False
+        if get_rate.status_code == 200:
+            try:
+                rate = get_rate.json().get('USD').get('buy')
+            except AttributeError:
+                get_rate_error = True
+        else:
+            get_rate_error = True
+
+        if get_rate_error or rate is None:
+            return Response({'detail': 'Failed to retrieve exchange rate'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        recipient_list = []
+        for t in transactions:
+            btc = int(math.ceil((t.amount_usd/rate)*ONE_SATOSHI))
+            recipient = (t.btc_wallet_address, btc)
+            # t.amount_btc = btc
+            # t.save()
+            recipient_list.append(recipient)
+
+        recipients = '{'
+        for i, r in enumerate(recipient_list):
+            recipients += '"{add}":{amt}'.format(add=r[0], amt=r[1])
+            if i != (len(recipient_list) - 1):
+                recipients += ','
+        recipients += '}'
+
+        params = {
+            'password': password1,
+            'second_password': password2,
+            'recipients': recipients,
+            'note': 'Buy Bitcoins in Ghana @ http://kitiwa.com ' +
+                    '- TEST TRANSACTION. ' +
+                    'Exchange Rate: {rate}, '.format(rate=rate) +
+                    'Source: Blockchain Exchange Rates Feed, ' +
+                    'Timestamp: {time} UTC'.format(time=datetime.utcnow())
+        }
+
+        r = requests.get(BLOCKCHAIN_API_SENDMANY, params=params)
+
+        if r.json().get('error'):
+            return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            transactions.update(state=Transaction.PROCESSED)
+            return Response({'status': 'success'})
+
+
     except (Transaction.DoesNotExist, ValueError, AttributeError):
         return Response({'detail': 'Invalid ID'},
                         status=status.HTTP_400_BAD_REQUEST)
