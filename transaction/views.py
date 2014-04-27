@@ -1,19 +1,20 @@
+from rest_framework import viewsets
+from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 import time
+from rest_framework.throttling import AnonRateThrottle
 from transaction.models import Transaction
 from transaction import serializers
-from rest_framework import viewsets
-from rest_framework import status
-from rest_framework.throttling import AnonRateThrottle
+from transaction import permissions
 
 
-# TODO: Enable IsAdminUser permission on GET all transactions and Update transaction
 class TransactionViewSet(viewsets.ModelViewSet):
 
     paginate_by = 20
     serializer_class = serializers.TransactionSerializer
+    permission_classes = (permissions.IsAdminOrPostOnly,)
     throttle_classes = (AnonRateThrottle,)
 
     def get_queryset(self):
@@ -22,6 +23,14 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if state is not None:
             queryset = queryset.filter(state=state)
         return queryset
+
+
+class PricingViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.PricingSerializer
+    permission_classes = (IsAdminUser,)
+
+    def pre_save(self, obj):
+        obj.end_previous_pricing()
 
 
 @api_view(['POST'])
@@ -65,4 +74,5 @@ def accept(request):
         transactions.update(state=Transaction.PROCESSED)
         return Response({'status': 'success'})
     except (Transaction.DoesNotExist, ValueError, AttributeError):
-        return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Invalid ID'},
+                        status=status.HTTP_400_BAD_REQUEST)
