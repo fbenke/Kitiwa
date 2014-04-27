@@ -46,7 +46,10 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_notification_phone_number(self, attrs, source):
-        # TODO: validation of the confirmation phone number
+        # TODO: come up with more advanced phone number validation
+        if not re.match(r'^[0-9]{10,15}$', attrs[source]):
+            raise serializers.ValidationError(
+                'phone number must be 10 - 15 numeric characters')
         return attrs
 
 
@@ -54,3 +57,9 @@ class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing
         fields = ('markup', 'ghs_usd')
+
+    def validate_markup(self, attrs, source):
+        if not (0.0 <= attrs[source] <= 1.0):
+            raise serializers.ValidationError(
+                'markup has to be a value between 0 and 1')
+        return attrs
