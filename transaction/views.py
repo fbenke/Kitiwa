@@ -42,10 +42,12 @@ class PricingViewSet(viewsets.ModelViewSet):
 def accept(request):
     # Expects a comma separated list of ids as a POST param called ids
     try:
-        transactions = Transaction.objects.filter(id__in=request.POST.get('ids', None).split(','))
         password1 = request.POST.get('password1', None)
         password2 = request.POST.get('password2', None)
+        transactions = Transaction.objects.filter(id__in=request.POST.get('ids', None).split(','))
 
+        # VALIDATION
+        # Validate Input
         if not transactions or not password1 or not password2:
             return Response({'detail': 'Invalid IDs and/or Passwords'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -59,44 +61,36 @@ def accept(request):
                                 },
                                 status=status.HTTP_403_FORBIDDEN)
 
-        # Make request to blockchain using passwords, if everything succeeds, update transactions
-        # https://blockchain.info/merchant/$guid/sendmany?password=$main_password&second_password=$second_password
-        # &recipients=$recipients&shared=$shared&fee=$fee
-        #
-        # $guid = on login page while logging in (hyphen separated string)
-        #
-        # $recipients = {
-        #   "1JzSZFs2DQke2B3S4pBxaNaMzzVZaG4Cqh": 100000000,
-        #   "12Cf6nCcRtKERh9cQm3Z29c9MWvQuFSxvT": 1500000000,
-        #   "1dice6YgEVBf88erBFra9BHf6ZMoyvG88": 200000000
-        # }
-        #
-        # http://blockchain.info/api/blockchain_wallet_api
-        # Not confident about security yet simulate call using sleep
-
-        get_rate = requests.get(BLOCKCHAIN_TICKER)
-        rate = None
+        # Get latest exchange rate
         get_rate_error = False
-        if get_rate.status_code == 200:
-            try:
-                rate = get_rate.json().get('USD').get('buy')
-            except AttributeError:
+        try:
+            get_rate = requests.get(BLOCKCHAIN_TICKER)
+            rate = None
+            if get_rate.status_code == 200:
+                try:
+                    rate = get_rate.json().get('USD').get('buy')
+                except AttributeError:
+                    get_rate_error = True
+            else:
                 get_rate_error = True
-        else:
+        except requests.exceptions.RequestException:
             get_rate_error = True
 
         if get_rate_error or rate is None:
             return Response({'detail': 'Failed to retrieve exchange rate'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+        # Calculate amounts to send based on latest exchange rate
         recipient_list = []
         for t in transactions:
             btc = int(math.ceil((t.amount_usd/rate)*ONE_SATOSHI))
             recipient = (t.btc_wallet_address, btc)
-            # t.amount_btc = btc
-            # t.save()
+            t.amount_btc = btc
+            t.processed_exchange_rate = rate
+            t.save()
             recipient_list.append(recipient)
 
+        # Prepare request and send
         recipients = '{'
         for i, r in enumerate(recipient_list):
             recipients += '"{add}":{amt}'.format(add=r[0], amt=r[1])
@@ -104,25 +98,28 @@ def accept(request):
                 recipients += ','
         recipients += '}'
 
-        params = {
-            'password': password1,
-            'second_password': password2,
-            'recipients': recipients,
-            'note': 'Buy Bitcoins in Ghana @ http://kitiwa.com ' +
-                    '- TEST TRANSACTION. ' +
-                    'Exchange Rate: {rate}, '.format(rate=rate) +
-                    'Source: Blockchain Exchange Rates Feed, ' +
-                    'Timestamp: {time} UTC'.format(time=datetime.utcnow())
-        }
+        send_many_error = False
+        try:
+            r = requests.get(BLOCKCHAIN_API_SENDMANY, params={
+                'password': 'Tjniov7g5#',
+                'second_password': 'Mppt348!',
+                'recipients': recipients,
+                'note': 'Buy Bitcoins in Ghana @ http://kitiwa.com ' +
+                        '- TEST TRANSACTION. ' +
+                        'Exchange Rate: {rate}, '.format(rate=rate) +
+                        'Source: Blockchain Exchange Rates Feed, ' +
+                        'Timestamp: {time} UTC'.format(time=datetime.utcnow())
+            })
+            if r.json().get('error'):
+                send_many_error = True
+            else:
+                transactions.update(state=Transaction.PROCESSED)
+                return Response({'status': 'success'})
+        except requests.exceptions.RequestException:
+            send_many_error = True
 
-        r = requests.get(BLOCKCHAIN_API_SENDMANY, params=params)
-
-        if r.json().get('error'):
+        if send_many_error:
             return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            transactions.update(state=Transaction.PROCESSED)
-            return Response({'status': 'success'})
-
 
     except (Transaction.DoesNotExist, ValueError, AttributeError):
         return Response({'detail': 'Invalid ID'},
