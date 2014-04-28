@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from kitiwa.settings import BLOCKCHAIN_TICKER, ONE_SATOSHI, BLOCKCHAIN_API_SENDMANY
+from kitiwa.settings import BLOCKCHAIN_TICKER, ONE_SATOSHI, BLOCKCHAIN_API_SENDMANY, BLOCKCHAIN_TRANSACTION_FEE_SATOSHI
 from transaction.models import Transaction, Pricing
 from transaction import serializers
 from transaction import permissions
@@ -82,36 +82,42 @@ def accept(request):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Calculate amounts to send based on latest exchange rate
-        recipient_list = []
         for t in transactions:
             btc = int(math.ceil((t.amount_usd/rate)*ONE_SATOSHI))
-            recipient = (t.btc_wallet_address, btc)
             t.amount_btc = btc
             t.processed_exchange_rate = rate
             t.save()
-            recipient_list.append(recipient)
+
+        # Combine transactions with same wallet address
+        combined_transactions = {}
+        for t in transactions:
+            try:
+                combined_transactions[t.btc_wallet_address] += t.amount_btc
+            except KeyError:
+                combined_transactions[t.btc_wallet_address] = t.amount_btc
 
         # Prepare request and send
         recipients = '{'
-        for i, r in enumerate(recipient_list):
-            recipients += '"{add}":{amt}'.format(add=r[0], amt=r[1])
-            if i != (len(recipient_list) - 1):
-                recipients += ','
-        recipients += '}'
+        for wallet, amount in combined_transactions.items():
+            recipients += '"{add}":{amt},'.format(add=wallet, amt=amount)
+        # remove last comma and add closing brace
+        recipients = recipients[:-1] + '}'
 
         send_many_error = False
         try:
             r = requests.get(BLOCKCHAIN_API_SENDMANY, params={
-                'password': 'Tjniov7g5#',
-                'second_password': 'Mppt348!',
+                'password': password1,
+                'second_password': password2,
                 'recipients': recipients,
                 'note': 'Buy Bitcoins in Ghana @ http://kitiwa.com ' +
-                        '- TEST TRANSACTION. ' +
                         'Exchange Rate: {rate}, '.format(rate=rate) +
                         'Source: Blockchain Exchange Rates Feed, ' +
                         'Timestamp: {time} UTC'.format(time=datetime.utcnow())
             })
             if r.json().get('error'):
+                print r.json()
+                # {"error": "Insufficient Funds Available: 365767 Needed: 1809656"}
+                # add up:1799656 needed: 1809656 balance: 10000 satoshi
                 send_many_error = True
             else:
                 transactions.update(state=Transaction.PROCESSED)
