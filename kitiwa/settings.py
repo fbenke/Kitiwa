@@ -1,5 +1,7 @@
 import os
+
 import dj_database_url
+
 
 # Helpers
 BASE_DIR = lambda *x: os.path.join(os.path.abspath(os.path.join(
@@ -108,23 +110,33 @@ REST_FRAMEWORK = {
     }
 }
 
+
 '''
 TODO: This should be changed when the site goes live. Only the
 domains of the angular apps should be allowed using CORS_ORIGIN_WHITELIST
 '''
 CORS_ORIGIN_ALLOW_ALL = True
 
+
+# Bitcoin settings
+ONE_SATOSHI = 100000000
+BITCOIN_NOTE = 'Buy Bitcoins in Ghana @ http://kitiwa.com Exchange Rate: {rate}, ' + \
+               'Source: Blockchain Exchange Rates Feed, Timestamp: {time} UTC'
+
+# Blockchain specific settings
 BLOCKCHAIN_GUID = os.environ.get('BLOCKCHAIN_GUID')
 BLOCKCHAIN_API_URL = 'https://blockchain.info/merchant/' + BLOCKCHAIN_GUID
 BLOCKCHAIN_API_BALANCE = BLOCKCHAIN_API_URL + '/balance/'
 BLOCKCHAIN_API_SENDMANY = BLOCKCHAIN_API_URL + '/sendmany/'
 BLOCKCHAIN_TICKER = 'https://blockchain.info/ticker'
-# BTC 0.0005 = SATOSHI 50'000
 BLOCKCHAIN_TRANSACTION_FEE_SATOSHI = 50000
 
+
+# Bitstamp specific settings
 BITSTAMP_API_URL = 'https://www.bitstamp.net/api/'
 BITSTAMP_API_TICKER = BITSTAMP_API_URL + 'ticker/'
 
+
+# Open exchange settings
 OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_id=dc2e5940109a49249841672fa39c7ccd'
 
-ONE_SATOSHI = 100000000

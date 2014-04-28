@@ -11,6 +11,8 @@ urlpatterns = patterns(
         template_name='robots.txt', content_type='text/plain'), name='robots'),
     url(r'^humans\.txt$', TemplateView.as_view(
         template_name='humans.txt', content_type='text/plain'), name='humans'),
+    # TODO: revise url naming. Inconsistency between superuser and api/v1 of transaction
+    # because superuser has an api too
     url(
         r'^superuser/',
         include('superuser.urls', namespace='superuser')

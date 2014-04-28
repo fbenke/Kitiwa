@@ -1,6 +1,8 @@
-from rest_framework import serializers
-from transaction.models import Transaction, Pricing
 import re
+
+from rest_framework import serializers
+
+from transaction.models import Transaction, Pricing
 
 
 class TransactionSerializer(serializers.ModelSerializer):

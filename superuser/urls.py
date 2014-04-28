@@ -1,5 +1,7 @@
 from django.conf.urls import patterns, url
+
 from superuser.views import ObtainStaffAuthToken
+
 
 urlpatterns = patterns(
     '',

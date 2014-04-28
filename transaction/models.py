@@ -1,14 +1,31 @@
+from datetime import datetime
+
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
-from datetime import datetime
 
 
 class Pricing(models.Model):
 
-    start = models.DateTimeField(auto_now_add=True)
-    end = models.DateTimeField(blank=True, null=True)
-    markup = models.FloatField()
-    ghs_usd = models.FloatField()
+    start = models.DateTimeField(
+        'Start Time',
+        auto_now_add=True,
+        help_text='Time at which pricing structure came into effect'
+    )
+    end = models.DateTimeField(
+        'End Time',
+        blank=True,
+        null=True,
+        help_text='Time at which pricing ended. If null, it represents the current pricing structure. ' +
+                  'Only one row in this table can have a null value for this column.'
+    )
+    markup = models.FloatField(
+        'Markup',
+        help_text='Percentage to be added over exchange rate. Value between 0 and 1.'
+    )
+    ghs_usd = models.FloatField(
+        'GHS/USD Exchange Rate',
+        help_text='Amount of GHS you get for 1 USD'
+    )
 
     def __unicode__(self):
         return '{markup} %'.format(markup=self.markup)
@@ -134,9 +151,9 @@ class Transaction(models.Model):
     )
 
     transaction_uid = models.CharField(
-        "Transaction identifier",
+        "Transaction Identifier",
         max_length=30,
-        help_text='Uid generated on Angular side to associate subsequent POST requests with a transaction.'
+        help_text='UID generated on the frontend to associate subsequent POST requests with a transaction.'
     )
 
     def save(self, *args, **kwargs):

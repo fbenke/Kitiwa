@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from transaction.models import Pricing, Transaction
 
 
@@ -18,9 +19,8 @@ class TransactionAdmin(admin.ModelAdmin):
 
     )
     readonly_fields = (
-        'id', 'btc_wallet_address', 'notification_phone_number',
-        'amount_ghs', 'amount_usd', 'initialized_at', 'amount_btc',
-        'processed_exchange_rate', 'transaction_uid',
+        'id', 'notification_phone_number', 'amount_ghs', 'amount_usd',
+        'initialized_at', 'amount_btc', 'processed_exchange_rate', 'transaction_uid',
     )
     list_display = ('btc_wallet_address', 'notification_phone_number', )
     list_display_links = ('btc_wallet_address', )

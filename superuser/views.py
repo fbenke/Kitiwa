@@ -8,6 +8,7 @@ from rest_framework import renderers
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
+
 from kitiwa.settings import BLOCKCHAIN_API_BALANCE, BITSTAMP_API_TICKER, OPEN_EXCHANGE_RATE_API_URL
 
 
