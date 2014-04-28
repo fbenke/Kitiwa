@@ -128,3 +128,11 @@ BITSTAMP_API_TICKER = BITSTAMP_API_URL + 'ticker/'
 OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_id=dc2e5940109a49249841672fa39c7ccd'
 
 ONE_SATOSHI = 100000000
+
+'''
+TODO: Figure out where to store these values. Probably environment variables!?
+'''
+MPOWER_MASTER_KEY = '59309f24-72f7-4b0b-8283-b3e299fe2a13'
+MPOWER_PRIVATE_KEY = 'test_private_GhKQSYAnuOV8Gk4N65srcqZvX-w'
+MPOWER_TOKEN = '9f42bb34491ef0bfb6c7'
+MPOWER_ENDPOINT_OPR_TOKEN_REQUEST = 'https://app.mpowerpayments.com/sandbox-api/v1/opr/create'

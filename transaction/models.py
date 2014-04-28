@@ -125,22 +125,34 @@ class Transaction(models.Model):
         help_text='Pricing information to enable amount_usd and amount_ghs relation (exchange rate and markup)'
     )
 
-    # mpower specific fields
-    mpower_token = models.CharField(
-        'MPower Token',
-        max_length=30,
-        blank=True,
-        default=''
-    )
-
     transaction_uid = models.CharField(
         "Transaction identifier",
         max_length=30,
         help_text='Uid generated on Angular side to associate subsequent POST requests with a transaction.'
     )
 
-    def save(self, *args, **kwargs):
-        self.pricing = Pricing.get_current_pricing()
-        usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
-        self.amount_ghs = usd_in_ghs * (1 + self.pricing.markup)
-        super(Transaction, self).save(*args, **kwargs)
+    # mpower specific fields
+    mpower_opr_token = models.CharField(
+        'MPower OPR Token',
+        max_length=30,
+        blank=True,
+        help_text='OPR Token returned by MPower after initialization of an Onsite Payment Request'
+    )
+
+    mpower_invoice_token = models.CharField(
+        'MPower OPR Invoice Token (only stored for tracking record)',
+        max_length=30,
+        blank=True,
+    )
+
+    mpower_response_code = models.CharField(
+        'MPower Response Code (only stored for tracking record)',
+        max_length=50,
+        blank=True,
+    )
+
+    mpower_response_text = models.CharField(
+        'MPower Response Text (only stored for tracking record)',
+        max_length=200,
+        blank=True,
+    )

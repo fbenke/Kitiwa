@@ -9,10 +9,12 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from kitiwa.settings import BLOCKCHAIN_TICKER, ONE_SATOSHI, BLOCKCHAIN_API_SENDMANY, BLOCKCHAIN_TRANSACTION_FEE_SATOSHI
+from kitiwa.settings import BLOCKCHAIN_TICKER, ONE_SATOSHI,\
+    BLOCKCHAIN_API_SENDMANY, BLOCKCHAIN_TRANSACTION_FEE_SATOSHI
 from transaction.models import Transaction, Pricing
 from transaction import serializers
 from transaction import permissions
+from transaction import mpower_api_calls
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -28,6 +30,35 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if state is not None:
             queryset = queryset.filter(state=state)
         return queryset
+
+    def pre_save(self, obj):
+
+        obj.pricing = Pricing.get_current_pricing()
+        usd_in_ghs = obj.amount_usd * obj.pricing.ghs_usd
+        obj.amount_ghs = round(usd_in_ghs * (1 + obj.pricing.markup), 2)
+
+    def post_save(self, obj, created=False):
+
+        phone_number = obj.notification_phone_number
+        amount = obj.amount_ghs
+
+        response_code, response_text, opr_token, invoice_token = (
+            mpower_api_calls.opr_token_request(
+                mpower_phone_number=phone_number,
+                amount=amount
+            )
+        )
+
+        obj.mpower_response_code = response_code
+        obj.mpower_response_text = response_text
+
+        if response_code == '00':
+            obj.mpower_opr_token = opr_token
+            obj.mpower_invoice_token = invoice_token
+        else:
+            obj.state = 'DECL'
+
+        obj.save()
 
 
 class PricingViewSet(viewsets.ModelViewSet):
@@ -83,7 +114,7 @@ def accept(request):
 
         # Calculate amounts to send based on latest exchange rate
         for t in transactions:
-            btc = int(math.ceil((t.amount_usd/rate)*ONE_SATOSHI))
+            btc = int(math.ceil((t.amount_usd / rate) * ONE_SATOSHI))
             t.amount_btc = btc
             t.processed_exchange_rate = rate
             t.save()
