@@ -50,8 +50,6 @@ class Transaction(models.Model):
     btc_wallet_address = models.CharField(
         'BTC Wallet Address',
         max_length=34,
-        blank=True,
-        default='',
         help_text='Wallet to send BTCs to. 27 - 34 alphanumeric characters'
     )
     notification_phone_number = models.CharField(
@@ -133,6 +131,12 @@ class Transaction(models.Model):
         max_length=30,
         blank=True,
         default=''
+    )
+
+    transaction_uid = models.CharField(
+        "Transaction identifier",
+        max_length=30,
+        help_text='Uid generated on Angular side to associate subsequent POST requests with a transaction.'
     )
 
     def save(self, *args, **kwargs):

@@ -11,7 +11,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             'amount_usd', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
             'processed_exchange_rate', 'amount_ghs', 'amount_btc',
-            'mpower_token',
+            'mpower_token', 'transaction_uid',
         )
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
@@ -24,9 +24,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         """
         27 - 34 alphanumeric, first one is 1 or 3
         """
-
-        if attrs[source] == '':
-            return attrs
 
         if not re.match(r'^[1,3][a-zA-Z0-9]{26,33}$', attrs[source]):
             raise serializers.ValidationError(
