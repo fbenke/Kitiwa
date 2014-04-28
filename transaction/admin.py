@@ -10,7 +10,7 @@ class PricingAdmin(admin.ModelAdmin):
 class TransactionAdmin(admin.ModelAdmin):
 
     fields = (
-        'id', 'email', 'btc_wallet_address', 'notification_phone_number',
+        'id', 'btc_wallet_address', 'notification_phone_number',
         'amount_ghs', 'amount_usd', 'amount_btc', 'initialized_at',
         'state', 'pricing', 'paid_at', 'processed_at',
         'cancelled_at', 'declined_at', 'penalty_in_usd',
@@ -18,13 +18,12 @@ class TransactionAdmin(admin.ModelAdmin):
 
     )
     readonly_fields = (
-        'id', 'email', 'btc_wallet_address', 'notification_phone_number',
+        'id', 'btc_wallet_address', 'notification_phone_number',
         'amount_ghs', 'amount_usd', 'initialized_at', 'amount_btc',
         'processed_exchange_rate',
     )
-    list_display = ('email', 'btc_wallet_address',
-                    'notification_phone_number', )
-    list_display_links = ('email', 'btc_wallet_address')
+    list_display = ('btc_wallet_address', 'notification_phone_number', )
+    list_display_links = ('btc_wallet_address', )
 
 admin.site.register(Pricing, PricingAdmin)
 admin.site.register(Transaction, TransactionAdmin)
