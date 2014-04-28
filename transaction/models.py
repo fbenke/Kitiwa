@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
-from datetime import datetime
+from django.utils.datetime_safe import datetime
 
 
 class Pricing(models.Model):
@@ -156,3 +156,22 @@ class Transaction(models.Model):
         max_length=200,
         blank=True,
     )
+
+    def calculate_ghs_price(self):
+        self.pricing = Pricing.get_current_pricing()
+        usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
+        self.amount_ghs = round(usd_in_ghs * (1 + self.pricing.markup), 2)
+
+    def update_after_opr_token_request(
+            self, response_code, response_text,
+            mpower_opr_token, mpower_invoice_token):
+
+        self.mpower_response_code = response_code
+        self.mpower_response_text = response_text
+
+        if response_code == '00':
+            self.mpower_opr_token = mpower_opr_token
+            self.mpower_invoice_token = mpower_invoice_token
+        else:
+            self.state = 'DECL'
+            self.declined_at = datetime.now()

@@ -40,6 +40,13 @@ class TransactionSerializer(serializers.ModelSerializer):
                 'phone number must be 10 - 15 numeric characters')
         return attrs
 
+    def validate_amount_usd(self, attrs, source):
+        if attrs[source] < 1:
+            raise serializers.ValidationError(
+                'amount must be at least 1 USD'
+            )
+        return attrs
+
 
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:

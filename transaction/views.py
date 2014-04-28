@@ -24,6 +24,15 @@ class TransactionViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAdminOrPostOnly,)
     throttle_classes = (AnonRateThrottle,)
 
+    def create(self, request, format=None):
+        response = super(viewsets.ModelViewSet, self).create(
+            request=request, format=format)
+        try:
+            response.data = {'mpower_response_code': response.data['mpower_response_code']}
+        except KeyError:
+            pass
+        return response
+
     def get_queryset(self):
         queryset = Transaction.objects.all()
         state = self.request.QUERY_PARAMS.get('state', None)
@@ -32,10 +41,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         return queryset
 
     def pre_save(self, obj):
-
-        obj.pricing = Pricing.get_current_pricing()
-        usd_in_ghs = obj.amount_usd * obj.pricing.ghs_usd
-        obj.amount_ghs = round(usd_in_ghs * (1 + obj.pricing.markup), 2)
+        obj.calculate_ghs_price()
 
     def post_save(self, obj, created=False):
 
@@ -49,14 +55,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
             )
         )
 
-        obj.mpower_response_code = response_code
-        obj.mpower_response_text = response_text
-
-        if response_code == '00':
-            obj.mpower_opr_token = opr_token
-            obj.mpower_invoice_token = invoice_token
-        else:
-            obj.state = 'DECL'
+        obj.update_after_opr_token_request(
+            response_code=response_code,
+            response_text=response_text,
+            mpower_opr_token=opr_token,
+            mpower_invoice_token=invoice_token)
 
         obj.save()
 
