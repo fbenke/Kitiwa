@@ -1,7 +1,6 @@
-from datetime import datetime
-
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.datetime_safe import datetime
 
 
 class Pricing(models.Model):
@@ -142,22 +141,62 @@ class Transaction(models.Model):
         help_text='Pricing information to enable amount_usd and amount_ghs relation (exchange rate and markup)'
     )
 
+    transaction_uid = models.CharField(
+        "Transaction identifier",
+        max_length=30,
+        help_text='Uid generated on Angular side to associate subsequent POST requests with a transaction.'
+    )
+
     # mpower specific fields
-    mpower_token = models.CharField(
-        'MPower Token',
+    mpower_opr_token = models.CharField(
+        'MPower OPR Token',
         max_length=30,
         blank=True,
-        default=''
+        help_text='OPR Token returned by MPower after initialization of an Onsite Payment Request'
     )
 
     transaction_uid = models.CharField(
         "Transaction Identifier",
         max_length=30,
-        help_text='UID generated on the frontend to associate subsequent POST requests with a transaction.'
+        help_text='UID generated on the front-end to associate subsequent POST requests with a transaction.'
     )
 
-    def save(self, *args, **kwargs):
+    mpower_invoice_token = models.CharField(
+        'MPower OPR Invoice Token',
+        max_length=30,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
+
+    mpower_response_code = models.CharField(
+        'MPower Response Code',
+        max_length=50,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
+
+    mpower_response_text = models.CharField(
+        'MPower Response Text',
+        max_length=200,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
+
+    def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()
         usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
-        self.amount_ghs = usd_in_ghs * (1 + self.pricing.markup)
-        super(Transaction, self).save(*args, **kwargs)
+        self.amount_ghs = round(usd_in_ghs * (1 + self.pricing.markup), 2)
+
+    def update_after_opr_token_request(
+            self, response_code, response_text,
+            mpower_opr_token, mpower_invoice_token):
+
+        self.mpower_response_code = response_code
+        self.mpower_response_text = response_text
+
+        if response_code == '00':
+            self.mpower_opr_token = mpower_opr_token
+            self.mpower_invoice_token = mpower_invoice_token
+        else:
+            self.state = 'DECL'
+            self.declined_at = datetime.now()

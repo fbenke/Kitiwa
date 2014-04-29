@@ -9,11 +9,14 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from kitiwa.settings import ONE_SATOSHI, BLOCKCHAIN_API_SENDMANY, BITCOIN_NOTE
+from kitiwa.settings import BITCOIN_NOTE
+from transaction.utils import get_blockchain_exchange_rate
+from kitiwa.settings import ONE_SATOSHI,\
+    BLOCKCHAIN_API_SENDMANY
 from transaction.models import Transaction, Pricing
 from transaction import serializers
 from transaction import permissions
-from transaction.utils import get_blockchain_exchange_rate
+from transaction import mpower_api_calls
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -23,12 +26,44 @@ class TransactionViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAdminOrPostOnly,)
     throttle_classes = (AnonRateThrottle,)
 
+    def create(self, request, format=None):
+        response = super(viewsets.ModelViewSet, self).create(
+            request=request, format=format)
+        try:
+            response.data = {'mpower_response_code': response.data['mpower_response_code']}
+        except KeyError:
+            pass
+        return response
+
     def get_queryset(self):
         queryset = Transaction.objects.all()
         state = self.request.QUERY_PARAMS.get('state', None)
         if state is not None:
             queryset = queryset.filter(state=state)
         return queryset
+
+    def pre_save(self, obj):
+        obj.calculate_ghs_price()
+
+    def post_save(self, obj, created=False):
+
+        phone_number = obj.notification_phone_number
+        amount = obj.amount_ghs
+
+        response_code, response_text, opr_token, invoice_token = (
+            mpower_api_calls.opr_token_request(
+                mpower_phone_number=phone_number,
+                amount=amount
+            )
+        )
+
+        obj.update_after_opr_token_request(
+            response_code=response_code,
+            response_text=response_text,
+            mpower_opr_token=opr_token,
+            mpower_invoice_token=invoice_token)
+
+        obj.save()
 
 
 class PricingViewSet(viewsets.ModelViewSet):

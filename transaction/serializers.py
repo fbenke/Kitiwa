@@ -13,13 +13,15 @@ class TransactionSerializer(serializers.ModelSerializer):
             'amount_usd', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
             'processed_exchange_rate', 'amount_ghs', 'amount_btc',
-            'mpower_token', 'transaction_uid',
+            'mpower_opr_token', 'transaction_uid', 'mpower_invoice_token',
+            'mpower_response_code', 'mpower_response_text'
         )
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
             'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
             'processed_exchange_rate', 'amount_ghs', 'amount_btc',
-            'mpower_token',
+            'mpower_opr_token', 'mpower_invoice_token', 'mpower_response_code',
+            'mpower_response_text'
         )
 
     def validate_btc_wallet_address(self, attrs, source):
@@ -38,6 +40,13 @@ class TransactionSerializer(serializers.ModelSerializer):
         if not re.match(r'^[0-9]{10,15}$', attrs[source]):
             raise serializers.ValidationError(
                 'phone number must be 10 - 15 numeric characters')
+        return attrs
+
+    def validate_amount_usd(self, attrs, source):
+        if attrs[source] < 1:
+            raise serializers.ValidationError(
+                'amount must be at least 1 USD'
+            )
         return attrs
 
 
