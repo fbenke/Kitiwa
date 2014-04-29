@@ -66,6 +66,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 class PricingViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PricingSerializer
     permission_classes = (IsAdminUser,)
+    queryset = Pricing.objects.filter(end__isnull=True)
 
     def pre_save(self, obj):
         Pricing.end_previous_pricing()
