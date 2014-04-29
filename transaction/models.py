@@ -157,6 +157,13 @@ class Transaction(models.Model):
         help_text='OPR Token returned by MPower after initialization of an Onsite Payment Request'
     )
 
+    mpower_confirm_token = models.CharField(
+        'MPower Confirmation Token',
+        max_length=10,
+        blank=True,
+        help_text='Token sent to user by MPower via SMS / Email to confirm Onsite Payment Request'
+    )
+
     mpower_invoice_token = models.CharField(
         'MPower OPR Invoice Token',
         max_length=30,
@@ -177,6 +184,14 @@ class Transaction(models.Model):
         blank=True,
         help_text='Only stored for tracking record'
     )
+
+    @staticmethod
+    def uid_in_use(transaction_uid):
+        try:
+            Transaction.objects.get(transaction_uid=transaction_uid, state=Transaction.INIT)
+            return True
+        except Transaction.DoesNotExist:
+            return False
 
     def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()
@@ -199,5 +214,5 @@ class Transaction(models.Model):
             self.mpower_opr_token = mpower_opr_token
             self.mpower_invoice_token = mpower_invoice_token
         else:
-            self.state = 'DECL'
+            self.state = Transaction.DECLINED
             self.declined_at = datetime.now()

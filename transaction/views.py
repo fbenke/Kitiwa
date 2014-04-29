@@ -2,6 +2,7 @@ from django.utils.datetime_safe import datetime
 import requests
 from rest_framework import viewsets
 from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
@@ -70,6 +71,21 @@ class PricingViewSet(viewsets.ModelViewSet):
 
     def pre_save(self, obj):
         Pricing.end_previous_pricing()
+
+
+class TransactionOprCharge(APIView):
+
+    def patch(self, request, format=None):
+        try:
+            transaction_uid = request.DATA.get('transaction_uid')
+            transaction = Transaction.objects.get(transaction_uid=transaction_uid, state=Transaction.INIT)
+            serializer = serializers.TransactionOprChargeSerializer(transaction, data=request.DATA)
+        except Transaction.DoesNotExist:
+            return Response({'detail': 'No matching transaction found'}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
