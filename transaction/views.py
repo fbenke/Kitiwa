@@ -140,7 +140,7 @@ def accept(request):
         if r.json().get('error'):
             request_error = True
         else:
-            transactions.update(state=Transaction.PROCESSED)
+            transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
             return Response({'status': 'success'})
     except requests.RequestException:
         request_error = True
