@@ -28,7 +28,7 @@ class ObtainStaffAuthToken(APIView):
             authenticated_user = serializer.object['user']
             token, created = Token.objects.get_or_create(user=authenticated_user)
             if authenticated_user.is_staff:
-                return Response({'token': token.key})
+                return Response({'token': token.key, 'username': authenticated_user.username})
             else:
                 return Response({'detail': 'Only staff users can access this login'}, status=status.HTTP_403_FORBIDDEN)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
