@@ -1,3 +1,4 @@
+import decimal
 import requests
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
@@ -9,7 +10,8 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 
-from kitiwa.settings import BLOCKCHAIN_API_BALANCE, BITSTAMP_API_TICKER, OPEN_EXCHANGE_RATE_API_URL
+from kitiwa.settings import BLOCKCHAIN_API_BALANCE, BITSTAMP_API_TICKER, OPEN_EXCHANGE_RATE_API_URL, ONE_SATOSHI
+from transaction.utils import get_blockchain_exchange_rate
 
 
 class ObtainStaffAuthToken(APIView):
@@ -46,7 +48,23 @@ def get_blockchain_balance(request):
     if r.json().get('balance') is None:
         return Response(r.json(), status=status.HTTP_403_FORBIDDEN)
     else:
-        return Response(r.json())
+        rate = get_blockchain_exchange_rate()
+        if rate is not None:
+            btc = decimal.Decimal(r.json().get('balance'))/ONE_SATOSHI
+            usd = btc * decimal.Decimal(rate)
+            print btc, usd
+            return Response({'btc': btc, 'usd': '{0:.2f}'.format(usd), 'rate': rate})
+
+
+@api_view(['GET'])
+@permission_classes((IsAdminUser,))
+def get_blockchain_rate(request):
+    rate = get_blockchain_exchange_rate()
+    if rate is not None:
+        return Response({'rate': rate})
+    else:
+        return Response({'error': 'Unable to retrieve rate'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 @api_view(['GET'])
 @permission_classes((IsAdminUser,))
