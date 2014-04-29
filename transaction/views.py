@@ -23,7 +23,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAdminOrPostOnly,)
     throttle_classes = (AnonRateThrottle,)
 
-    def create(self, request, format=None):
+    def create(self, request, *args, **kwargs):
         response = super(viewsets.ModelViewSet, self).create(
             request=request, format=format)
         try:
@@ -134,6 +134,7 @@ def accept(request):
         else:
             return Response("{'error': 'Error making btc transfer request to blockchain'}",
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # Helper method
 def consolidate_transactions(transactions):

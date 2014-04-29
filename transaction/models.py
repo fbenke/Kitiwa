@@ -144,9 +144,9 @@ class Transaction(models.Model):
     )
 
     transaction_uid = models.CharField(
-        "Transaction identifier",
+        "Transaction Identifier",
         max_length=30,
-        help_text='Uid generated on Angular side to associate subsequent POST requests with a transaction.'
+        help_text='UID generated on the front-end to associate subsequent POST requests with a transaction.'
     )
 
     # mpower specific fields
@@ -155,12 +155,6 @@ class Transaction(models.Model):
         max_length=30,
         blank=True,
         help_text='OPR Token returned by MPower after initialization of an Onsite Payment Request'
-    )
-
-    transaction_uid = models.CharField(
-        "Transaction Identifier",
-        max_length=30,
-        help_text='UID generated on the front-end to associate subsequent POST requests with a transaction.'
     )
 
     mpower_invoice_token = models.CharField(
