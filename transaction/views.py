@@ -1,5 +1,3 @@
-import math
-
 from django.utils.datetime_safe import datetime
 import requests
 from rest_framework import viewsets
@@ -10,9 +8,8 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
 from kitiwa.settings import BITCOIN_NOTE
-from transaction.utils import get_blockchain_exchange_rate
-from kitiwa.settings import ONE_SATOSHI,\
-    BLOCKCHAIN_API_SENDMANY
+from transaction import utils
+from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from transaction.models import Transaction, Pricing
 from transaction import serializers
 from transaction import permissions
@@ -98,20 +95,21 @@ def accept(request):
 
     # USD-BTC CONVERSION
     # Get latest exchange rate
-    rate = get_blockchain_exchange_rate()
+    rate = utils.get_blockchain_exchange_rate()
     if rate is None:
         return Response({'detail': 'Failed to retrieve exchange rate'},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # Calculate amounts to send based on latest exchange rate
-    update_transactions_btc(transactions, rate)
+    # Update amount_btc based on latest exchange rate
+    for t in transactions:
+        t.update_btc(rate)
 
     # Combine transactions with same wallet address
     combined_transactions = consolidate_transactions(transactions)
 
     # REQUEST
     # Prepare request and send
-    recipients = create_recipients_string(combined_transactions)
+    recipients = utils.create_recipients_string(combined_transactions)
 
     request_error = False
     r = None
@@ -137,15 +135,7 @@ def accept(request):
             return Response("{'error': 'Error making btc transfer request to blockchain'}",
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-def update_transactions_btc(transactions, rate):
-    for t in transactions:
-        btc = int(math.ceil((t.amount_usd/rate)*ONE_SATOSHI))
-        t.amount_btc = btc
-        t.processed_exchange_rate = rate
-        t.save()
-
-
+# Helper method
 def consolidate_transactions(transactions):
     combined_transactions = {}
     for t in transactions:
@@ -154,10 +144,3 @@ def consolidate_transactions(transactions):
         except KeyError:
             combined_transactions[t.btc_wallet_address] = t.amount_btc
     return combined_transactions
-
-
-def create_recipients_string(combined_transactions):
-    recipients = '{'
-    for wallet, amount in combined_transactions.items():
-        recipients += '"{add}":{amt},'.format(add=wallet, amt=amount)
-    return recipients[:-1] + '}'

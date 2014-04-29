@@ -15,3 +15,10 @@ def get_blockchain_exchange_rate():
             return None
     except requests.RequestException:
         return None
+
+
+def create_recipients_string(combined_transactions):
+    recipients = '{'
+    for wallet, amount in combined_transactions.items():
+        recipients += '"{add}":{amt},'.format(add=wallet, amt=amount)
+    return recipients[:-1] + '}'

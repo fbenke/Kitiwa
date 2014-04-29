@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datetime_safe import datetime
+import math
+from kitiwa.settings import ONE_SATOSHI
 
 
 class Pricing(models.Model):
@@ -186,6 +188,11 @@ class Transaction(models.Model):
         self.pricing = Pricing.get_current_pricing()
         usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
         self.amount_ghs = round(usd_in_ghs * (1 + self.pricing.markup), 2)
+
+    def update_btc(self, rate):
+        self.amount_btc = int(math.ceil((self.amount_usd/rate)*ONE_SATOSHI))
+        self.processed_exchange_rate = rate
+        self.save()
 
     def update_after_opr_token_request(
             self, response_code, response_text,
