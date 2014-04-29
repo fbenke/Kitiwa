@@ -36,7 +36,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_notification_phone_number(self, attrs, source):
-        # TODO: come up with more advanced phone number validation
         if not re.match(r'^[0-9]{10,15}$', attrs[source]):
             raise serializers.ValidationError(
                 'phone number must be 10 - 15 numeric characters')
@@ -47,6 +46,12 @@ class TransactionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'amount must be at least 1 USD'
             )
+        return attrs
+
+    def validate_transaction_uid(self, attrs, source):
+        if not re.match(r'^[a-zA-Z0-9]{12}$', attrs[source]):
+            raise serializers.ValidationError(
+                'uid must be 12 alphanumeric characters')
         return attrs
 
 
