@@ -4,6 +4,8 @@ import dj_database_url
 
 
 # Helpers
+import sys
+
 BASE_DIR = lambda *x: os.path.join(os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.path.pardir)).replace('\\', '/'), *x)
 
@@ -91,7 +93,19 @@ TEMPLATE_DIRS = (
 
 # Logging
 LOGGING = {
-    'version': 1,
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+        }
+    }
 }
 
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
