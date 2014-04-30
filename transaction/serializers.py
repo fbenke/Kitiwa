@@ -69,8 +69,8 @@ class TransactionOprChargeSerializer(serializers.ModelSerializer):
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing
-        fields = ('markup', 'ghs_usd', 'start',)
-        read_only_fields = ('start',)
+        fields = ('markup', 'ghs_usd', 'start', 'end',)
+        read_only_fields = ('start', 'end',)
 
     def validate_markup(self, attrs, source):
         if not (0.0 <= attrs[source] <= 1.0):
