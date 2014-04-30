@@ -2,6 +2,7 @@ from django.utils.datetime_safe import datetime
 import requests
 from rest_framework import viewsets
 from rest_framework import status
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
@@ -28,7 +29,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
         response = super(viewsets.ModelViewSet, self).create(
             request=request, format=format)
         try:
-            response.data = {'mpower_response_code': response.data['mpower_response_code']}
+            response.data = {
+                'mpower_response_code': response.data['mpower_response_code']
+            }
         except KeyError:
             pass
         return response
@@ -67,21 +70,38 @@ class TransactionViewSet(viewsets.ModelViewSet):
 class PricingViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.PricingSerializer
     permission_classes = (IsAdminUser,)
-    queryset = Pricing.objects.filter(end__isnull=True)
+    queryset = Pricing.objects.filter()
 
     def pre_save(self, obj):
         Pricing.end_previous_pricing()
 
 
+class PricingCurrent(RetrieveAPIView):
+    serializer_class = serializers.PricingSerializer
+    permission_classes = (IsAdminUser,)
+
+    def retrieve(self, request, *args, **kwargs):
+        self.object = Pricing.objects.get(end__isnull=True)
+        serializer = self.get_serializer(self.object)
+        return Response(serializer.data)
+
+
 class TransactionOprCharge(APIView):
 
-    def patch(self, request, format=None):
+    def put(self, request, format=None):
         try:
             transaction_uid = request.DATA.get('transaction_uid')
-            transaction = Transaction.objects.get(transaction_uid=transaction_uid, state=Transaction.INIT)
-            serializer = serializers.TransactionOprChargeSerializer(transaction, data=request.DATA)
+            transaction = Transaction.objects.get(
+                transaction_uid=transaction_uid, state=Transaction.INIT
+            )
+            serializer = serializers.TransactionOprChargeSerializer(
+                transaction, data=request.DATA
+            )
         except Transaction.DoesNotExist:
-            return Response({'detail': 'No matching transaction found'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'detail': 'No matching transaction found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
