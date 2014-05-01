@@ -1,6 +1,7 @@
 from django.conf.urls import patterns, include, url
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from django.contrib import admin
+from kitiwa.settings import STATIC_URL
 
 admin.autodiscover()
 
@@ -11,6 +12,7 @@ urlpatterns = patterns(
         template_name='robots.txt', content_type='text/plain'), name='robots'),
     url(r'^humans\.txt$', TemplateView.as_view(
         template_name='humans.txt', content_type='text/plain'), name='humans'),
+    url(r'^favicon\.ico$', RedirectView.as_view(url=STATIC_URL + 'img/favicon.ico')),
     # TODO: revise url naming. Inconsistency between superuser and api/v1 of transaction
     # because superuser has an api too
     url(
