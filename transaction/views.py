@@ -30,10 +30,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
             request=request, format=format)
         try:
             response.data = {
-                'mpower_response_code': response.data['mpower_response_code']
+                'mpower_response_code': response.data['mpower_response_code'],
+                'mpower_response_text': response.data['mpower_response_text']
             }
         except KeyError:
-            pass
+            response.data = {}
         return response
 
     def get_queryset(self):
@@ -64,7 +65,50 @@ class TransactionViewSet(viewsets.ModelViewSet):
             mpower_opr_token=opr_token,
             mpower_invoice_token=invoice_token)
 
-        obj.save()
+
+class TransactionOprCharge(APIView):
+
+    def put(self, request, format=None):
+        try:
+            transaction_uid = request.DATA.get('transaction_uid')
+            transaction = Transaction.objects.get(
+                transaction_uid=transaction_uid,
+                state__in=[Transaction.INIT, Transaction.DECLINED]
+            )
+            serializer = serializers.TransactionOprChargeSerializer(
+                transaction, data=request.DATA
+            )
+        except Transaction.DoesNotExist:
+            return Response(
+                {'detail': 'No matching transaction found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        if serializer.is_valid():
+
+            serializer.save()
+
+            response_code, response_text, \
+                receipt_url = mpower_api_calls.opr_charge_action(
+                    opr_token=transaction.mpower_opr_token,
+                    confirm_token=serializer.data['mpower_confirm_token']
+                )
+
+            transaction = Transaction.objects.get(id=transaction.id)
+
+            transaction.update_after_opr_charge(
+                response_code=response_code,
+                response_text=response_text,
+                receipt_url=receipt_url)
+
+            response = {
+                'mpower_response_code': response_code,
+                'mpower_response_text': response_text,
+                'mpower_receipt_url': receipt_url
+            }
+
+            return Response(response)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PricingViewSet(viewsets.ModelViewSet):
@@ -84,28 +128,6 @@ class PricingCurrent(RetrieveAPIView):
         self.object = Pricing.objects.get(end__isnull=True)
         serializer = self.get_serializer(self.object)
         return Response(serializer.data)
-
-
-class TransactionOprCharge(APIView):
-
-    def put(self, request, format=None):
-        try:
-            transaction_uid = request.DATA.get('transaction_uid')
-            transaction = Transaction.objects.get(
-                transaction_uid=transaction_uid, state=Transaction.INIT
-            )
-            serializer = serializers.TransactionOprChargeSerializer(
-                transaction, data=request.DATA
-            )
-        except Transaction.DoesNotExist:
-            return Response(
-                {'detail': 'No matching transaction found'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])

@@ -157,10 +157,13 @@ OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_
 
 
 # MPower Settings
+MPOWER_ENDPOINT_OPR_TOKEN_REQUEST = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_REQUEST')
+MPOWER_ENDPOINT_OPR_TOKEN_CHARGE = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_CHARGE')
+
 '''
 TODO: Figure out where to store these values. Probably environment variables!?
 '''
+
 MPOWER_MASTER_KEY = '59309f24-72f7-4b0b-8283-b3e299fe2a13'
 MPOWER_PRIVATE_KEY = 'test_private_GhKQSYAnuOV8Gk4N65srcqZvX-w'
 MPOWER_TOKEN = '9f42bb34491ef0bfb6c7'
-MPOWER_ENDPOINT_OPR_TOKEN_REQUEST = 'https://app.mpowerpayments.com/sandbox-api/v1/opr/create'

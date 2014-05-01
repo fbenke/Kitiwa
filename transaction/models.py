@@ -185,10 +185,21 @@ class Transaction(models.Model):
         help_text='Only stored for tracking record'
     )
 
+    mpower_receipt_url = models.CharField(
+        'URL to generated PDF Receipt for this transaction',
+        max_length=100,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
+
     @staticmethod
     def uid_in_use(transaction_uid):
         try:
-            Transaction.objects.get(transaction_uid=transaction_uid, state=Transaction.INIT)
+            Transaction.objects.get(
+                transaction_uid=transaction_uid,
+                state__in=[Transaction.INIT, Transaction.DECLINED]
+            )
+
             return True
         except Transaction.DoesNotExist:
             return False
@@ -216,3 +227,19 @@ class Transaction(models.Model):
         else:
             self.state = Transaction.DECLINED
             self.declined_at = datetime.now()
+
+        self.save()
+
+    def update_after_opr_charge(
+            self, response_code, response_text, receipt_url):
+
+        self.mpower_response_code = response_code
+        self.mpower_response_text = response_text
+        self.mpower_receipt_url = receipt_url
+
+        if response_code == '00':
+            self.state = Transaction.PAID
+        else:
+            self.state = Transaction.DECLINED
+
+        self.save()
