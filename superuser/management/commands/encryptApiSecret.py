@@ -41,7 +41,7 @@ class Command(BaseCommand):
         # Step 3: AES encryption of the API_SECRET using key
         iv = os.urandom(16)
         aes = AES.new(base64.b64decode(key_base64), AES.MODE_CBC, iv)
-        enc_api_secret = aes.encrypt(api_secret)
+        enc_api_secret = aes.encrypt(iv + api_secret)
 
         # Step 4: Show user results
         print 'Salt (Base64):', base64.b64encode(salt).strip()

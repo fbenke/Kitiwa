@@ -150,6 +150,10 @@ BLOCKCHAIN_TRANSACTION_FEE_SATOSHI = 50000
 # Bitstamp specific settings
 BITSTAMP_API_URL = 'https://www.bitstamp.net/api/'
 BITSTAMP_API_TICKER = BITSTAMP_API_URL + 'ticker/'
+# These can be generated using ./manage.py encryptapisecret
+BITSTAMP_ENC_API_SECRET_BASE64 = 'VoUBkmPtu33tV31VUgpKUni1EgvR5eQ1FbxDOGVwc3U='
+BITSTAMP_ENC_SALT_BASE64 = 'U3k1cnplOVJTdnFM'
+BITSTAMP_ENC_IV_BASE64 = '9t5QTbZjRo+nWy70H7vyGQ=='
 
 
 # Open exchange settings
