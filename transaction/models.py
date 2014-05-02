@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datetime_safe import datetime
+from django_extensions.db.fields import UUIDField
 import math
 from kitiwa.settings import ONE_SATOSHI
 
@@ -145,10 +146,11 @@ class Transaction(models.Model):
         help_text='Pricing information to enable amount_usd and amount_ghs relation (exchange rate and markup)'
     )
 
-    transaction_uid = models.CharField(
+    transaction_uuid = UUIDField(
         "Transaction Identifier",
-        max_length=30,
-        help_text='UID generated on the front-end to associate subsequent POST requests with a transaction.'
+        blank=True,
+        version=4,
+        help_text='UUID to associate subsequent POST requests with a transaction.'
     )
 
     # mpower specific fields
@@ -193,18 +195,6 @@ class Transaction(models.Model):
         blank=True,
         help_text='Only stored for tracking record'
     )
-
-    @staticmethod
-    def uid_in_use(transaction_uid):
-        try:
-            Transaction.objects.get(
-                transaction_uid=transaction_uid,
-                state__in=[Transaction.INIT, Transaction.DECLINED]
-            )
-
-            return True
-        except Transaction.DoesNotExist:
-            return False
 
     def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()

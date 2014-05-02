@@ -31,7 +31,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
         try:
             response.data = {
                 'mpower_response_code': response.data['mpower_response_code'],
-                'mpower_response_text': response.data['mpower_response_text']
+                'mpower_response_text': response.data['mpower_response_text'],
+                'transaction_uuid': response.data['transaction_uuid']
             }
         except KeyError:
             response.data = {}
@@ -70,9 +71,9 @@ class TransactionOprCharge(APIView):
 
     def put(self, request, format=None):
         try:
-            transaction_uid = request.DATA.get('transaction_uid')
+            transaction_uuid = request.DATA.get('transaction_uuid')
             transaction = Transaction.objects.get(
-                transaction_uid=transaction_uid,
+                transaction_uuid=transaction_uuid,
                 state__in=[Transaction.INIT, Transaction.DECLINED]
             )
             serializer = serializers.TransactionOprChargeSerializer(
