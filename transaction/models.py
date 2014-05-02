@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datetime_safe import datetime
+from django_extensions.db.fields import UUIDField
 import math
 from kitiwa.settings import ONE_SATOSHI
 
@@ -51,12 +52,14 @@ class Transaction(models.Model):
         ordering = ['id']
 
     # Constants
+    INVALID = 'INVD'
     INIT = 'INIT'
     PAID = 'PAID'
     CANCELLED = 'CANC'
     DECLINED = 'DECL'
     PROCESSED = 'PROC'
     TRANSACTION_STATUS = (
+        (INVALID, 'invalid'),
         (INIT, 'initialized'),
         (PAID, 'paid'),
         (CANCELLED, 'cancelled'),
@@ -143,10 +146,11 @@ class Transaction(models.Model):
         help_text='Pricing information to enable amount_usd and amount_ghs relation (exchange rate and markup)'
     )
 
-    transaction_uid = models.CharField(
+    transaction_uuid = UUIDField(
         "Transaction Identifier",
-        max_length=30,
-        help_text='UID generated on the front-end to associate subsequent POST requests with a transaction.'
+        blank=True,
+        version=4,
+        help_text='UUID to associate subsequent POST requests with a transaction.'
     )
 
     # mpower specific fields
@@ -185,13 +189,12 @@ class Transaction(models.Model):
         help_text='Only stored for tracking record'
     )
 
-    @staticmethod
-    def uid_in_use(transaction_uid):
-        try:
-            Transaction.objects.get(transaction_uid=transaction_uid, state=Transaction.INIT)
-            return True
-        except Transaction.DoesNotExist:
-            return False
+    mpower_receipt_url = models.CharField(
+        'URL to generated PDF Receipt for this transaction',
+        max_length=100,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
 
     def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()
@@ -214,5 +217,21 @@ class Transaction(models.Model):
             self.mpower_opr_token = mpower_opr_token
             self.mpower_invoice_token = mpower_invoice_token
         else:
-            self.state = Transaction.DECLINED
+            self.state = Transaction.INVALID
             self.declined_at = datetime.now()
+
+        self.save()
+
+    def update_after_opr_charge(
+            self, response_code, response_text, receipt_url):
+
+        self.mpower_response_code = response_code
+        self.mpower_response_text = response_text
+        self.mpower_receipt_url = receipt_url
+
+        if response_code == '00':
+            self.state = Transaction.PAID
+        else:
+            self.state = Transaction.DECLINED
+
+        self.save()

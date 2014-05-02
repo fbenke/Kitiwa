@@ -23,6 +23,13 @@ Generate a secret key using:
 
 - DATABASE_URL
 - SECRET_KEY
+- MPOWER_ENDPOINT_OPR_TOKEN_REQUEST
+	- sandbox: https://app.mpowerpayments.com/sandbox-api/v1/opr/create
+	- production: https://app.mpowerpayments.com/api/v1/opr/create
+
+- MPOWER_ENDPOINT_OPR_TOKEN_CHARGE
+	- sandbox: https://app.mpowerpayments.com/sandbox-api/v1/opr/charge 
+	- production: https://app.mpowerpayments.com/api/v1/opr/charge
 
 **Optional:**
 
