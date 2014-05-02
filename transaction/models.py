@@ -51,12 +51,14 @@ class Transaction(models.Model):
         ordering = ['id']
 
     # Constants
+    INVALID = 'INVD'
     INIT = 'INIT'
     PAID = 'PAID'
     CANCELLED = 'CANC'
     DECLINED = 'DECL'
     PROCESSED = 'PROC'
     TRANSACTION_STATUS = (
+        (INVALID, 'invalid'),
         (INIT, 'initialized'),
         (PAID, 'paid'),
         (CANCELLED, 'cancelled'),
@@ -225,7 +227,7 @@ class Transaction(models.Model):
             self.mpower_opr_token = mpower_opr_token
             self.mpower_invoice_token = mpower_invoice_token
         else:
-            self.state = Transaction.DECLINED
+            self.state = Transaction.INVALID
             self.declined_at = datetime.now()
 
         self.save()

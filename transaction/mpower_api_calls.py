@@ -14,8 +14,9 @@ def _create_headers():
     }
 
 
-# TODO: what to send as invoide description?
-def opr_token_request(amount, mpower_phone_number, invoice_desc=''):
+# TODO: what to send as invoice description?
+def opr_token_request(amount, mpower_phone_number,
+                      invoice_desc='', store_name='Kitiwa'):
 
     payload = {
         'invoice_data': {
@@ -24,7 +25,7 @@ def opr_token_request(amount, mpower_phone_number, invoice_desc=''):
                 'description': invoice_desc
             },
             'store': {
-                'name': 'Kitiwa'
+                'name': store_name
             }
         },
         'opr_data': {
