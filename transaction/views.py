@@ -32,13 +32,17 @@ class TransactionViewSet(viewsets.ModelViewSet):
         response = super(viewsets.ModelViewSet, self).create(
             request=request, format=format)
         try:
+            transaction_uuid = response.data['transaction_uuid']
+            response_code = response.data['mpower_response_code']
+            response_text = response.data['mpower_response_text']
+
             response.data = {
-                'mpower_response_code': response.data['mpower_response_code'],
-                'mpower_response_text': response.data['mpower_response_text'],
+                'mpower_response_code': response_code,
+                'mpower_response_text': response_text,
             }
 
-            if response.data['mpower_response_code'] == '00':
-                response['transaction_uuid'] = response.data['transaction_uuid']
+            if response_code == '00':
+                response.data['transaction_uuid'] = transaction_uuid
 
         except KeyError:
             response.data = {}
@@ -115,7 +119,7 @@ class TransactionOprCharge(APIView):
             if response_code == '00':
                 response['mpower_receipt_url'] = receipt_url
                 if SENDGRID_ACTIVATE:
-                    api_calls.notifiy_admins()
+                    api_calls.notify_admins()
 
             return Response(response)
 

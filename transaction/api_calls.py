@@ -108,7 +108,7 @@ def notify_admins():
     message.set_text(SENDGRID_EMAIL_BODY)
 
     try:
-        sg.send(message, raise_errors=True)
+        sg.send(message)
     except sendgrid.SendGridError:
         # todo get logging in place
         pass

@@ -179,10 +179,11 @@ if SENDGRID_ACTIVATE:
     SENDGRID_TRANSACTION_THRESHOLD = os.environ.get('SENDGRID_TRANSACTION_THRESHOLD')
     SENDGRID_EMAIL_FROM = 'noreply@kitiwa.com'
     SENDGRID_EMAIL_SUBJECT = 'Kitiwa: There are transactions waiting to be processed'
-    SENDGRID_EMAIL_BODY = '''
-                           Dear Admin,
-                           there are transactions waiting to be processed.
+    SENDGRID_EMAIL_BODY =\
+        '''
+        Dear Admin,
+        there are transactions waiting to be processed.
 
-                           Sincerely,
-                           the SendGridBot
-                           '''
+        Sincerely,
+        the SendGridBot
+        '''

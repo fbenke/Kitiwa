@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
-from django.utils.datetime_safe import datetime
+from django.utils import timezone
 from django_extensions.db.fields import UUIDField
 import math
 from kitiwa.settings import ONE_SATOSHI
@@ -218,8 +218,7 @@ class Transaction(models.Model):
             self.mpower_invoice_token = mpower_invoice_token
         else:
             self.state = Transaction.INVALID
-            self.declined_at = datetime.now()
-
+            self.declined_at = timezone.now()
         self.save()
 
     def update_after_opr_charge(
@@ -231,7 +230,10 @@ class Transaction(models.Model):
 
         if response_code == '00':
             self.state = Transaction.PAID
+            self.paid_at = timezone.now()
+
         else:
             self.state = Transaction.DECLINED
+            self.declined_at = timezone.now()
 
         self.save()
