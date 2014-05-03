@@ -4,7 +4,6 @@ import dj_database_url
 
 
 # Helpers
-import sys
 
 BASE_DIR = lambda *x: os.path.join(os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.path.pardir)).replace('\\', '/'), *x)
@@ -134,12 +133,12 @@ domains of the angular apps should be allowed using CORS_ORIGIN_WHITELIST
 CORS_ORIGIN_ALLOW_ALL = True
 
 
-# Bitcoin settings
+# Bitcoin general settings
 ONE_SATOSHI = 100000000
 BITCOIN_NOTE = 'Buy Bitcoins in Ghana @ http://kitiwa.com Exchange Rate: {rate}, ' + \
                'Source: Blockchain Exchange Rates Feed, Timestamp: {time} UTC'
 
-# Blockchain specific settings
+# Blockchain settings
 BLOCKCHAIN_GUID = os.environ.get('BLOCKCHAIN_GUID')
 BLOCKCHAIN_API_URL = 'https://blockchain.info/merchant/' + BLOCKCHAIN_GUID
 BLOCKCHAIN_API_BALANCE = BLOCKCHAIN_API_URL + '/balance/'
@@ -148,20 +147,24 @@ BLOCKCHAIN_TICKER = 'https://blockchain.info/ticker'
 BLOCKCHAIN_TRANSACTION_FEE_SATOSHI = 50000
 
 
-# Bitstamp specific settings
+# Bitstamp settings
 BITSTAMP_API_URL = 'https://www.bitstamp.net/api/'
 BITSTAMP_API_TICKER = BITSTAMP_API_URL + 'ticker/'
+BITSTAMP_API_BALANCE = BITSTAMP_API_URL + 'balance/'
+# SECRETS:
+BITSTAMP_CLIENT_ID = os.environ.get('BITSTAMP_CLIENT_ID')
+BITSTAMP_API_KEY = os.environ.get('BITSTAMP_API_KEY')
 # These can be generated using ./manage.py encryptapisecret
-BITSTAMP_ENC_API_SECRET_BASE64 = 'VoUBkmPtu33tV31VUgpKUni1EgvR5eQ1FbxDOGVwc3U='
-BITSTAMP_ENC_SALT_BASE64 = 'U3k1cnplOVJTdnFM'
-BITSTAMP_ENC_IV_BASE64 = '9t5QTbZjRo+nWy70H7vyGQ=='
+BITSTAMP_ENC_API_SECRET_BASE64 = os.environ.get('BITSTAMP_ENC_API_SECRET_BASE64')
+BITSTAMP_ENC_SALT_BASE64 = os.environ.get('BITSTAMP_ENC_SALT_BASE64')
+BITSTAMP_ENC_IV_BASE64 = os.environ.get('BITSTAMP_ENC_IV_BASE64')
 
 
-# Open exchange settings
+# Openexchangerate settings
 OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_id=dc2e5940109a49249841672fa39c7ccd'
 
 
-# MPower Settings
+# MPower settings
 MPOWER_ENDPOINT_OPR_TOKEN_REQUEST = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_REQUEST')
 MPOWER_ENDPOINT_OPR_TOKEN_CHARGE = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_CHARGE')
 MPOWER_MASTER_KEY = os.environ.get('MPOWER_MASTER_KEY')
