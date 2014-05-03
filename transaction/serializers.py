@@ -50,14 +50,6 @@ class TransactionSerializer(serializers.ModelSerializer):
             )
         return attrs
 
-    def validate_transaction_uid(self, attrs, source):
-
-        if not re.match(r'^[a-zA-Z0-9]{12}$', attrs[source]):
-            raise serializers.ValidationError(
-                'uid must be 12 alphanumeric characters')
-
-        return attrs
-
 
 class TransactionOprChargeSerializer(serializers.ModelSerializer):
     class Meta:
