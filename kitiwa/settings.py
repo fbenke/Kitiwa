@@ -167,3 +167,19 @@ MPOWER_ENDPOINT_OPR_TOKEN_CHARGE = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_CHA
 MPOWER_MASTER_KEY = os.environ.get('MPOWER_MASTER_KEY')
 MPOWER_PRIVATE_KEY = os.environ.get('MPOWER_PRIVATE_KEY')
 MPOWER_TOKEN = os.environ.get('MPOWER_TOKEN')
+
+# Sendgrid Settings
+SENDGRID_ACTIVATE = bool(int(os.environ.get('SENDGRID_ACTIVATE', '1')))
+if SENDGRID_ACTIVATE:
+    SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
+    SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
+    SENDGRID_TRANSACTION_THRESHOLD = os.environ.get('SENDGRID_TRANSACTION_THRESHOLD')
+    SENDGRID_EMAIL_FROM = 'noreply@kitiwa.com'
+    SENDGRID_EMAIL_SUBJECT = 'Kitiwa: There are transactions waiting to be processed'
+    SENDGRID_EMAIL_BODY = '''
+                           Dear Admin,
+                           there are transactions waiting to be processed.
+
+                           Sincerely,
+                           the SendGridBot
+                           '''

@@ -1,5 +1,6 @@
 from django.utils.datetime_safe import datetime
 import requests
+
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
@@ -9,13 +10,15 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
+from kitiwa.settings import SENDGRID_ACTIVATE
 from kitiwa.settings import BITCOIN_NOTE
-from transaction import utils
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
+
 from transaction.models import Transaction, Pricing
 from transaction import serializers
 from transaction import permissions
-from transaction import mpower_api_calls
+from transaction import api_calls
+from transaction import utils
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -32,8 +35,11 @@ class TransactionViewSet(viewsets.ModelViewSet):
             response.data = {
                 'mpower_response_code': response.data['mpower_response_code'],
                 'mpower_response_text': response.data['mpower_response_text'],
-                'transaction_uuid': response.data['transaction_uuid']
             }
+
+            if response.data['mpower_response_code'] == '00':
+                response['transaction_uuid'] = response.data['transaction_uuid']
+
         except KeyError:
             response.data = {}
         return response
@@ -54,7 +60,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         amount = obj.amount_ghs
 
         response_code, response_text, opr_token, invoice_token = (
-            mpower_api_calls.opr_token_request(
+            api_calls.opr_token_request(
                 mpower_phone_number=phone_number,
                 amount=amount
             )
@@ -89,7 +95,7 @@ class TransactionOprCharge(APIView):
             serializer.save()
 
             response_code, response_text, \
-                receipt_url = mpower_api_calls.opr_charge_action(
+                receipt_url = api_calls.opr_charge_action(
                     opr_token=transaction.mpower_opr_token,
                     confirm_token=serializer.data['mpower_confirm_token']
                 )
@@ -104,8 +110,12 @@ class TransactionOprCharge(APIView):
             response = {
                 'mpower_response_code': response_code,
                 'mpower_response_text': response_text,
-                'mpower_receipt_url': receipt_url
             }
+
+            if response_code == '00':
+                response['mpower_receipt_url'] = receipt_url
+                if SENDGRID_ACTIVATE:
+                    api_calls.notifiy_admins()
 
             return Response(response)
 

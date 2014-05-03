@@ -35,6 +35,7 @@ urlpatterns = patterns(
         name='transaction-accept'),
     url(r'^transaction/opr_charge/$', views.TransactionOprCharge.as_view(),
         name='transaction-charge'),
+    url(r'^test_send/$', 'transaction.views.test_send'),
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)
