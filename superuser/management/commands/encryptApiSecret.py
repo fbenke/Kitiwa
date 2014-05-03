@@ -44,6 +44,7 @@ class Command(BaseCommand):
         enc_api_secret = aes.encrypt(iv + api_secret)
 
         # Step 4: Show user results
-        print 'Salt (Base64):', base64.b64encode(salt).strip()
-        print 'IV (Base64):', base64.b64encode(iv).strip()
-        print 'Encrypted API Secret (Base64):', base64.b64encode(enc_api_secret).strip()
+        print 'Edit config vars with the following values:'
+        print 'Salt (BITSTAMP_ENC_SALT_BASE64):', base64.b64encode(salt).strip()
+        print 'IV (BITSTAMP_ENC_IV_BASE64):', base64.b64encode(iv).strip()
+        print 'Encrypted API Secret (BITSTAMP_ENC_API_SECRET_BASE64):', base64.b64encode(enc_api_secret).strip()

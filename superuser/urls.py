@@ -1,15 +1,22 @@
 from django.conf.urls import patterns, url
-
-from superuser.views import ObtainStaffAuthToken
+from superuser.views import auth, blockchain, bitstamp, forex
 
 
 urlpatterns = patterns(
     '',
-    url(r'^api/v1/login/$', ObtainStaffAuthToken.as_view()),
-    url(r'^api/v1/logout/$', 'superuser.views.api_logout'),
-    url(r'^api/v1/blockchain/balance/$', 'superuser.views.get_blockchain_balance'),
-    url(r'^api/v1/blockchain/rate/$', 'superuser.views.get_blockchain_rate'),
-    url(r'^api/v1/bitstamp/rate/$', 'superuser.views.get_bitstamp_rate'),
-    url(r'^api/v1/bitstamp/encryptedData/$', 'superuser.views.get_encrypted_data'),
-    url(r'^api/v1/forex/usd/ghs/$', 'superuser.views.get_openexchangerate_usd_ghs'),
+    # Auth
+    url(r'^api/v1/login/$', auth.Login.as_view()),
+    url(r'^api/v1/logout/$', auth.logout),
+
+    # Blockchain
+    url(r'^api/v1/blockchain/balance/$', blockchain.get_balance),
+    url(r'^api/v1/blockchain/rate/$', blockchain.get_rate),
+
+    # Bitstamp
+    url(r'^api/v1/bitstamp/rate/$', bitstamp.get_rate),
+    url(r'^api/v1/bitstamp/data/$', bitstamp.get_request_data),
+    url(r'^api/v1/bitstamp/balance/$', bitstamp.get_balance),
+
+    # Forex
+    url(r'^api/v1/forex/usd/ghs/$', forex.get_usd_ghs),
 )
