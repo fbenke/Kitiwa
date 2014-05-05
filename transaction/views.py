@@ -35,10 +35,12 @@ class TransactionViewSet(viewsets.ModelViewSet):
             transaction_uuid = response.data['transaction_uuid']
             response_code = response.data['mpower_response_code']
             response_text = response.data['mpower_response_text']
+            reference_number = response.data['reference_number']
 
             response.data = {
                 'mpower_response_code': response_code,
                 'mpower_response_text': response_text,
+                'reference_number': reference_number
             }
 
             if response_code == '00':
@@ -57,6 +59,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     def pre_save(self, obj):
         obj.calculate_ghs_price()
+        obj.generate_reference_number()
 
     def post_save(self, obj, created=False):
 
