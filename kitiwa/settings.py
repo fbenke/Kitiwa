@@ -171,18 +171,46 @@ MPOWER_MASTER_KEY = os.environ.get('MPOWER_MASTER_KEY')
 MPOWER_PRIVATE_KEY = os.environ.get('MPOWER_PRIVATE_KEY')
 MPOWER_TOKEN = os.environ.get('MPOWER_TOKEN')
 
+
 # Sendgrid Settings
-SENDGRID_ACTIVATE = bool(int(os.environ.get('SENDGRID_ACTIVATE', '1')))
-if SENDGRID_ACTIVATE:
-    SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
-    SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
-    SENDGRID_TRANSACTION_THRESHOLD = os.environ.get('SENDGRID_TRANSACTION_THRESHOLD')
-    SENDGRID_EMAIL_FROM = 'noreply@kitiwa.com'
-    SENDGRID_EMAIL_SUBJECT = 'Kitiwa: There are transactions waiting to be processed'
-    SENDGRID_EMAIL_BODY =\
+SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
+SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD')
+SENDGRID_EMAIL_FROM = 'noreply@kitiwa.com'
+
+# Smsgh Settings
+SMSGH_CLIENT_ID = os.environ.get('SMSGH_CLIENT_ID')
+SMSGH_CLIENT_SECRET = os.environ.get('SMSGH_CLIENT_SECRET')
+SMSGH_SEND_MESSAGE = 'https://api.smsgh.com/v3/messages'
+SMSGH_CONTENT = 'Your bitcoin order #{} has been processed! Please check your'\
+    'bitcoin wallet and confirm that you\'ve received it on our Facebook page:'\
+    ' fb.com/kitiwaBTC'
+
+# Notification Settings
+NOTIFY_ADMIN_PAID = bool(int(os.environ.get('NOTIFY_ADMIN_PAID', '1')))
+NOTIFY_ADMIN_SMSGH_CREDIT = bool(int(os.environ.get('NOTIFY_ADMIN_SMSGH_CREDIT', '1')))
+
+if NOTIFY_ADMIN_PAID:
+    SENDGRID_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be processed'
+    SENDGRID_EMAIL_BODY_PAID =\
         '''
         Dear Admin,
         there are transactions waiting to be processed.
+
+        Sincerely,
+        the SendGridBot
+        '''
+    SENDGRID_TRANSACTION_THRESHOLD = os.environ.get('SENDGRID_TRANSACTION_THRESHOLD')
+
+if NOTIFY_ADMIN_SMSGH_CREDIT:
+    SMSGH_USER = os.environ.get('SMSGH_USER')
+    SMSGH_PASSWORD = os.environ.get('SMSGH_PASSWORD')
+    SMSGH_CHECK_BALANCE = 'http://www.mytxtbox.com/smsghapi.ashx/getbalance'
+    SMSGH_CREDIT_THRESHOLD = 20
+    SENDGRID_EMAIL_SUBJECT_SMSGH = 'Kitiwa: Charge smsgh account'
+    SENDGRID_EMAIL_BODY_SMSGH =\
+        '''
+        Dear Amdin,
+        you are running low on smsgh credits. Please charge the account.
 
         Sincerely,
         the SendGridBot

@@ -197,10 +197,25 @@ class Transaction(models.Model):
     )
 
     mpower_receipt_url = models.CharField(
-        'URL to generated PDF Receipt for this transaction',
+        'URL to generated PDF receipt for this transaction',
         max_length=100,
         blank=True,
         help_text='Only stored for tracking record'
+    )
+
+    # mpower specific fields
+    smsgh_response_status = models.CharField(
+        'Response code sent by SMSGH',
+        max_length=5,
+        blank=True,
+        help_text='Code describing outcome of sending confirmation sms'
+    )
+
+    smsgh_message_id = models.CharField(
+        'Message id sent by SMSGH',
+        max_length=30,
+        blank=True,
+        help_text='Identifier referring to confirmation sms sent by SMSGH'
     )
 
     def calculate_ghs_price(self):
@@ -246,4 +261,10 @@ class Transaction(models.Model):
             self.state = Transaction.DECLINED
             self.declined_at = timezone.now()
 
+        self.save()
+
+    def update_after_sms_notification(
+            self, response_status, message_id):
+        self.smsgh_response_status = response_status
+        self.smsgh_message_id = message_id
         self.save()

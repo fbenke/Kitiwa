@@ -10,7 +10,6 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from kitiwa.settings import SENDGRID_ACTIVATE
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 
@@ -121,8 +120,8 @@ class TransactionOprCharge(APIView):
 
             if response_code == '00':
                 response['mpower_receipt_url'] = receipt_url
-                if SENDGRID_ACTIVATE:
-                    api_calls.notify_admins()
+
+                api_calls.notify_admins_paid()
 
             return Response(response)
 
@@ -201,6 +200,16 @@ def accept(request):
             request_error = True
         else:
             transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
+            for t in transactions:
+                response_status, message_id =\
+                    api_calls.send_message(
+                        t.notification_phone_number, t.reference_number
+                    )
+                t.update_after_sms_notification(
+                    response_status, message_id
+                )
+            
+            api_calls.check_smsgh_balance()
             return Response({'status': 'success'})
     except requests.RequestException:
         request_error = True

@@ -16,7 +16,8 @@ class TransactionSerializer(serializers.ModelSerializer):
             'mpower_opr_token', 'transaction_uuid', 'reference_number',
             'mpower_invoice_token', 'mpower_response_code',
             'mpower_response_text', 'mpower_confirm_token',
-            'mpower_receipt_url',
+            'mpower_receipt_url', 'smsgh_response_status',
+            'smsgh_message_id',
         )
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
@@ -25,7 +26,8 @@ class TransactionSerializer(serializers.ModelSerializer):
             'mpower_opr_token', 'transaction_uuid', 'reference_number',
             'mpower_invoice_token', 'mpower_response_code',
             'mpower_response_text', 'mpower_confirm_token',
-            'mpower_receipt_url',
+            'mpower_receipt_url', 'smsgh_response_status',
+            'smsgh_message_id',
         )
 
     def validate_btc_wallet_address(self, attrs, source):

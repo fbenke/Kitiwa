@@ -17,7 +17,8 @@ class TransactionAdmin(admin.ModelAdmin):
         'cancelled_at', 'declined_at', 'penalty_in_usd',
         'processed_exchange_rate', 'transaction_uuid', 'reference_number',
         'mpower_response_code', 'mpower_response_text', 'mpower_opr_token',
-        'mpower_confirm_token', 'mpower_receipt_url',
+        'mpower_confirm_token', 'mpower_receipt_url', 'smsgh_response_status',
+        'smsgh_message_id',
 
     )
     readonly_fields = (
@@ -25,7 +26,8 @@ class TransactionAdmin(admin.ModelAdmin):
         'initialized_at', 'amount_btc', 'processed_exchange_rate',
         'transaction_uuid', 'reference_number', 'mpower_response_code',
         'mpower_response_text', 'mpower_opr_token', 'mpower_confirm_token',
-        'mpower_receipt_url',
+        'mpower_receipt_url', 'smsgh_response_status',
+        'smsgh_message_id',
     )
     list_display = (
         'btc_wallet_address', 'notification_phone_number', 'state',
