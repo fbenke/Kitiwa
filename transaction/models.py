@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django_extensions.db.fields import UUIDField
 import math
+import random
 from kitiwa.settings import ONE_SATOSHI
 
 
@@ -40,7 +41,7 @@ class Pricing(models.Model):
     def end_previous_pricing():
         try:
             previous_pricing = Pricing.objects.get(end__isnull=True)
-            previous_pricing.end = datetime.now()
+            previous_pricing.end = timezone.now()
             previous_pricing.save()
         except ObjectDoesNotExist:
             pass
@@ -146,6 +147,12 @@ class Transaction(models.Model):
         help_text='Pricing information to enable amount_usd and amount_ghs relation (exchange rate and markup)'
     )
 
+    reference_number = models.CharField(
+        'Reference Number',
+        max_length=6,
+        help_text='6-digit reference number given to the customer to refer to transaction in case of problems'
+    )
+
     transaction_uuid = UUIDField(
         "Transaction Identifier",
         blank=True,
@@ -201,6 +208,9 @@ class Transaction(models.Model):
         usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
         # floor to 2 decimal places
         self.amount_ghs = math.floor(usd_in_ghs * (1 + self.pricing.markup) * 100) / 100
+
+    def generate_reference_number(self):
+        self.reference_number = str(random.randint(10000, 999999))
 
     def update_btc(self, rate):
         self.amount_btc = int(math.ceil((self.amount_usd/rate)*ONE_SATOSHI))
