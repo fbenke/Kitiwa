@@ -199,7 +199,8 @@ class Transaction(models.Model):
     def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()
         usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
-        self.amount_ghs = round(usd_in_ghs * (1 + self.pricing.markup), 2)
+        # floor to 2 decimal places
+        self.amount_ghs = math.floor(usd_in_ghs * (1 + self.pricing.markup) * 100) / 100
 
     def update_btc(self, rate):
         self.amount_btc = int(math.ceil((self.amount_usd/rate)*ONE_SATOSHI))

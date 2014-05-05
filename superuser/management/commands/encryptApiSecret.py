@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
         # Step 1: Get API_SECRET and password from user
         api_secret = getpass.getpass("API Secret (Characters will not be visible): ")
-        password = getpass.getpass()
+        password = getpass.getpass("Password: (Characters will not be visible): ")
 
         # Step 2: Key stretching on the password to make it into an acceptable AES key
         try:

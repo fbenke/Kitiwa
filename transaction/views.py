@@ -13,6 +13,7 @@ from rest_framework.throttling import AnonRateThrottle
 from kitiwa.settings import SENDGRID_ACTIVATE
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
+from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
 from transaction import serializers
@@ -169,7 +170,7 @@ def accept(request):
 
     # USD-BTC CONVERSION
     # Get latest exchange rate
-    rate = utils.get_blockchain_exchange_rate()
+    rate = get_blockchain_exchange_rate()
     if rate is None:
         return Response({'detail': 'Failed to retrieve exchange rate'},
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
