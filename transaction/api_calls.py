@@ -3,7 +3,6 @@ from requests.auth import HTTPBasicAuth
 import json
 import sendgrid
 import re
-from django.http import Http500
 
 from django.contrib.auth.models import User
 from transaction.models import Transaction
@@ -160,8 +159,8 @@ def send_message(mobile_number, reference_number):
 
     response_status = decoded_response['Status']
 
-    if response_status == '402':
-        raise Http500('You ran out of smsgh credits.')
+    # if response_status == '402':
+    #     raise Http500('You ran out of smsgh credits.')
 
     try:
         message_id = decoded_response['MessageId']
