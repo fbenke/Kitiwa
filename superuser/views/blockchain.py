@@ -5,7 +5,6 @@ from rest_framework.decorators import permission_classes, api_view
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from kitiwa import settings as s
-from transaction.utils import get_blockchain_exchange_rate
 
 
 @api_view(['POST'])
@@ -33,3 +32,17 @@ def get_rate(request):
         return Response({'rate': rate})
     else:
         return Response({'error': 'Unable to retrieve rate'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def get_blockchain_exchange_rate():
+    try:
+        get_rate_call = requests.get(s.BLOCKCHAIN_TICKER)
+        if get_rate_call.status_code == 200:
+            try:
+                return get_rate_call.json().get('USD').get('buy')
+            except AttributeError:
+                return None
+        else:
+            return None
+    except requests.RequestException:
+        return None
