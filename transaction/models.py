@@ -213,7 +213,7 @@ class Transaction(models.Model):
 
     smsgh_message_id = models.CharField(
         'Message id sent by SMSGH',
-        max_length=30,
+        max_length=50,
         blank=True,
         help_text='Identifier referring to confirmation sms sent by SMSGH'
     )
