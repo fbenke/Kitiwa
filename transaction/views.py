@@ -15,9 +15,9 @@ from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
+from transaction.api_calls import sendgrid_mail, mpower, smsgh
 from transaction import serializers
 from transaction import permissions
-from transaction import api_calls
 from transaction import utils
 
 
@@ -31,6 +31,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         response = super(viewsets.ModelViewSet, self).create(
             request=request, format=format)
+
+        # create a custom response to the frontend
         try:
             transaction_uuid = response.data['transaction_uuid']
             response_code = response.data['mpower_response_code']
@@ -67,7 +69,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
         amount = obj.amount_ghs
 
         response_code, response_text, opr_token, invoice_token = (
-            api_calls.opr_token_request(
+            mpower.opr_token_request(
                 mpower_phone_number=phone_number,
                 amount=amount
             )
@@ -102,7 +104,7 @@ class TransactionOprCharge(APIView):
             serializer.save()
 
             response_code, response_text, \
-                receipt_url = api_calls.opr_charge_action(
+                receipt_url = mpower.opr_charge_action(
                     opr_token=transaction.mpower_opr_token,
                     confirm_token=serializer.data['mpower_confirm_token']
                 )
@@ -122,7 +124,7 @@ class TransactionOprCharge(APIView):
             if response_code == '00':
                 response['mpower_receipt_url'] = receipt_url
 
-                api_calls.notify_admins_paid()
+                sendgrid_mail.notify_admins_paid()
 
             return Response(response)
 
@@ -202,15 +204,14 @@ def accept(request):
         else:
             transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
             for t in transactions:
-                response_status, message_id =\
-                    api_calls.send_message(
-                        t.notification_phone_number, t.reference_number
-                    )
+                response_status, message_id = smsgh.send_message(
+                    mobile_number=t.notification_phone_number,
+                    reference_number=t.reference_number
+                )
                 t.update_after_sms_notification(
                     response_status, message_id
                 )
-            
-            api_calls.check_smsgh_balance()
+
             return Response({'status': 'success'})
     except requests.RequestException:
         request_error = True

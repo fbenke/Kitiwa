@@ -193,7 +193,6 @@ SMSGH_CONTENT = 'Your bitcoin order #{} has been processed! Please check your'\
 
 # Notification Settings
 NOTIFY_ADMIN_PAID = bool(int(os.environ.get('NOTIFY_ADMIN_PAID', '1')))
-NOTIFY_ADMIN_SMSGH_CREDIT = bool(int(os.environ.get('NOTIFY_ADMIN_SMSGH_CREDIT', '1')))
 
 if NOTIFY_ADMIN_PAID:
     SENDGRID_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be processed'
@@ -207,17 +206,7 @@ if NOTIFY_ADMIN_PAID:
         '''
     SENDGRID_TRANSACTION_THRESHOLD = os.environ.get('SENDGRID_TRANSACTION_THRESHOLD')
 
-if NOTIFY_ADMIN_SMSGH_CREDIT:
-    SMSGH_USER = os.environ.get('SMSGH_USER')
-    SMSGH_PASSWORD = os.environ.get('SMSGH_PASSWORD')
-    SMSGH_CHECK_BALANCE = 'http://www.mytxtbox.com/smsghapi.ashx/getbalance'
-    SMSGH_CREDIT_THRESHOLD = 20
-    SENDGRID_EMAIL_SUBJECT_SMSGH = 'Kitiwa: Charge smsgh account'
-    SENDGRID_EMAIL_BODY_SMSGH =\
-        '''
-        Dear Amdin,
-        you are running low on smsgh credits. Please charge the account.
 
-        Sincerely,
-        the SendGridBot
-        '''
+SMSGH_USER = os.environ.get('SMSGH_USER')
+SMSGH_PASSWORD = os.environ.get('SMSGH_PASSWORD')
+SMSGH_CHECK_BALANCE = 'http://www.mytxtbox.com/smsghapi.ashx/getbalance'
