@@ -46,7 +46,7 @@ def send_message(mobile_number, reference_number):
     return response_status, message_id
 
 
-def check_smsgh_balance():
+def check_balance():
 
     payload = {
         'api_id': SMSGH_CLIENT_ID,

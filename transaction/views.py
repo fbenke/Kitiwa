@@ -153,6 +153,7 @@ class PricingCurrent(RetrieveAPIView):
 @api_view(['POST'])
 @permission_classes((IsAdminUser,))
 def accept(request):
+
     # Expects a comma separated list of ids as a POST param called ids
     try:
         password1 = request.POST.get('password1', None)
@@ -165,6 +166,16 @@ def accept(request):
     # Validate Input
     if not transactions or not password1 or not password2:
         return Response({'detail': 'Invalid IDs and/or Passwords'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Make sure that there are enough credits in smsgh account to send out confirmation sms
+    smsgh_balance = smsgh.check_balance()
+
+    if smsgh_balance is not None:
+        if smsgh_balance < len(transactions):
+            return Response(
+                {'detail': 'Not enough credit on SMSGH account'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     # If any transaction is not PAID, fail the whole request
     for t in transactions:
