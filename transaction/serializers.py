@@ -3,6 +3,7 @@ import re
 from rest_framework import serializers
 
 from transaction.models import Transaction, Pricing
+from transaction.utils import is_valid_btc_address
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -35,7 +36,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         27 - 34 alphanumeric, first one is 1 or 3
         """
 
-        if not re.match(r'^[1,3][a-zA-Z0-9]{26,33}$', attrs[source]):
+        if not is_valid_btc_address(attrs[source]):
             raise serializers.ValidationError(
                 'this is not a valid bitcoin address')
 
