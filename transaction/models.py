@@ -50,7 +50,7 @@ class Pricing(models.Model):
 class Transaction(models.Model):
 
     class Meta:
-        ordering = ['id']
+        ordering = ['-initialized_at']
 
     # Constants
     INVALID = 'INVD'
@@ -228,7 +228,7 @@ class Transaction(models.Model):
         self.reference_number = str(random.randint(10000, 999999))
 
     def update_btc(self, rate):
-        self.amount_btc = int(math.ceil((self.amount_usd/rate)*ONE_SATOSHI))
+        self.amount_btc = int(math.ceil((self.amount_usd / rate) * ONE_SATOSHI))
         self.processed_exchange_rate = rate
         self.save()
 
