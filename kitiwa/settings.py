@@ -187,7 +187,7 @@ SMSGH_CLIENT_ID = os.environ.get('SMSGH_CLIENT_ID')
 SMSGH_CLIENT_SECRET = os.environ.get('SMSGH_CLIENT_SECRET')
 SMSGH_SEND_MESSAGE = 'https://api.smsgh.com/v3/messages'
 SMSGH_CONTENT = 'Your bitcoin order #{} has been processed! Please check your'\
-    'bitcoin wallet and confirm that you\'ve received it on our Facebook page:'\
+    ' bitcoin wallet and confirm that you\'ve received it on our Facebook page:'\
     ' fb.com/kitiwaBTC'
 
 # Notification Settings
