@@ -208,7 +208,7 @@ def accept(request):
             'password': password1,
             'second_password': password2,
             'recipients': recipients,
-            'note': BITCOIN_NOTE.format(rate=rate, time=datetime.utcnow())
+            'note': BITCOIN_NOTE
         })
         if r.json().get('error'):
             request_error = True

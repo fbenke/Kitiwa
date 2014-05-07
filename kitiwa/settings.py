@@ -135,8 +135,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 # Bitcoin general settings
 ONE_SATOSHI = 100000000
-BITCOIN_NOTE = 'Buy Bitcoins in Ghana @ http://kitiwa.com Exchange Rate: {rate}, ' + \
-               'Source: Blockchain Exchange Rates Feed, Timestamp: {time} UTC'
+BITCOIN_NOTE = 'Buy bitcoins in Ghana @ https://kitiwa.com'
 
 # Blockchain settings
 BLOCKCHAIN_GUID = os.environ.get('BLOCKCHAIN_GUID')
