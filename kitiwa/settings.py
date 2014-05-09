@@ -17,6 +17,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 ALLOWED_HOSTS = ['*']
 
+ENV = os.environ.get('ENV')
+
+ENV_NAMES = {
+    'dev': 'vip.kitiwa.com',
+    'test': 'kitiwa-test.com',
+    'prod': 'kitiwa.com'
+}
+
 # Application definition
 DJANGO_APPS = (
     'django.contrib.admin',
@@ -195,10 +203,10 @@ NOTIFY_ADMIN_PAID = bool(int(os.environ.get('NOTIFY_ADMIN_PAID', '1')))
 
 if NOTIFY_ADMIN_PAID:
     SENDGRID_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be processed'
-    SENDGRID_EMAIL_BODY_PAID =\
+    SENDGRID_EMAIL_BODY_PAID = \
         '''
         Dear Admin,
-        there are transactions waiting to be processed.
+        there are transactions on {} waiting to be processed.
 
         Sincerely,
         the SendGridBot
