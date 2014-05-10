@@ -1,9 +1,9 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-from django_extensions.db.fields import UUIDField
 import math
 import random
+from uuid import uuid4
 from kitiwa.settings import ONE_SATOSHI
 
 
@@ -153,11 +153,11 @@ class Transaction(models.Model):
         help_text='6-digit reference number given to the customer to refer to transaction in case of problems'
     )
 
-    transaction_uuid = UUIDField(
+    transaction_uuid = models.CharField(
         "Transaction Identifier",
+        max_length=36,
         blank=True,
-        version=4,
-        help_text='UUID to associate subsequent POST requests with a transaction.'
+        help_text='UUID version 4 to associate subsequent POST requests with a transaction.'
     )
 
     # mpower specific fields
@@ -242,6 +242,7 @@ class Transaction(models.Model):
         if response_code == '00':
             self.mpower_opr_token = mpower_opr_token
             self.mpower_invoice_token = mpower_invoice_token
+            self.transaction_uuid = uuid4()
         else:
             self.state = Transaction.INVALID
             self.declined_at = timezone.now()

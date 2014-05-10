@@ -30,6 +30,7 @@ class TransactionAdmin(admin.ModelAdmin):
 
     list_display = (
         'btc_wallet_address', 'notification_phone_number', 'state',
+        'amount_usd',
     )
 
     list_display_links = ('btc_wallet_address', )
