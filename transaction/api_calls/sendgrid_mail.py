@@ -1,9 +1,12 @@
 import sendgrid
-from kitiwa.settings import NOTIFY_ADMIN_PAID, SENDGRID_EMAIL_SUBJECT_PAID,\
-    SENDGRID_EMAIL_BODY_PAID, SENDGRID_TRANSACTION_THRESHOLD
+from kitiwa.settings import NOTIFY_ADMIN_PAID,\
+    NOTIFY_ADMIN_EMAIL_SUBJECT_PAID, NOTIFY_ADMIN_EMAIL_BODY_PAID,\
+    NOTIFY_ADMIN_TRANSACTION_THRESHOLD
 
 from kitiwa.settings import SENDGRID_USERNAME,\
     SENDGRID_PASSWORD, SENDGRID_EMAIL_FROM
+
+from kitiwa.settings import ENV, ENV_NAMES
 
 from django.contrib.auth.models import User
 from transaction.models import Transaction
@@ -35,7 +38,9 @@ def notify_admins_paid():
         return
 
     if Transaction.objects.filter(state=Transaction.PAID).count() <\
-            int(SENDGRID_TRANSACTION_THRESHOLD):
+            int(NOTIFY_ADMIN_TRANSACTION_THRESHOLD):
         return
 
-    send_mail_to_admins(SENDGRID_EMAIL_SUBJECT_PAID, SENDGRID_EMAIL_BODY_PAID)
+    message = NOTIFY_ADMIN_EMAIL_BODY_PAID.format(ENV_NAMES[ENV])
+
+    send_mail_to_admins(NOTIFY_ADMIN_EMAIL_SUBJECT_PAID, message)
