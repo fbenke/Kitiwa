@@ -4,13 +4,15 @@ from requests.auth import HTTPBasicAuth
 import json
 
 from kitiwa.settings import SMSGH_CLIENT_ID, SMSGH_CLIENT_SECRET,\
-    SMSGH_CONTENT, SMSGH_SEND_MESSAGE, SMSGH_CHECK_BALANCE,\
-    SMSGH_USER, SMSGH_PASSWORD
+    SMSGH_SEND_MESSAGE, SMSGH_CHECK_BALANCE, SMSGH_USER, SMSGH_PASSWORD
+
+from kitiwa.settings import NOTIFY_USER_CONF_REF_TEXT_SINGLE,\
+    NOTIFY_USER_CONF_REF_TEXT_MULTIPLE, NOTIFY_USER_CONF_CALL_TO_ACTION
 
 
-def send_message(mobile_number, reference_number):
+def send_message(mobile_number, reference_numbers):
 
-    content = SMSGH_CONTENT.format(reference_number)
+    content = _create_confirm_message(reference_numbers)
 
     # convert phone number to match expected format by smsgh
     mobile_number = '+233{}'.format(mobile_number[1::])
@@ -44,6 +46,18 @@ def send_message(mobile_number, reference_number):
         message_id = ''
 
     return response_status, message_id
+
+
+def _create_confirm_message(reference_numbers):
+
+    if len(reference_numbers) == 1:
+        message = NOTIFY_USER_CONF_REF_TEXT_SINGLE.format(reference_numbers[0])
+    else:
+        message = NOTIFY_USER_CONF_REF_TEXT_MULTIPLE.format(
+            ', #'.join(reference_numbers)
+        )
+
+    return '{} {}'.format(message, NOTIFY_USER_CONF_CALL_TO_ACTION)
 
 
 def check_balance():

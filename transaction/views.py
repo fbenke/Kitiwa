@@ -214,14 +214,20 @@ def accept(request):
             request_error = True
         else:
             transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
-            for t in transactions:
+
+            combined_sms = consolidate_notification_sms(transactions)
+
+            for number, reference_numbers in combined_sms.iteritems():
                 response_status, message_id = smsgh.send_message(
-                    mobile_number=t.notification_phone_number,
-                    reference_number=t.reference_number
+                    mobile_number=number,
+                    reference_numbers=reference_numbers
                 )
-                t.update_after_sms_notification(
-                    response_status, message_id
-                )
+
+                for t in transactions.filter(notification_phone_number=number):
+
+                    t.update_after_sms_notification(
+                        response_status, message_id
+                    )
 
             return Response({'status': 'success'})
     except requests.RequestException:
@@ -235,7 +241,7 @@ def accept(request):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# Helper method
+# Helper methods
 def consolidate_transactions(transactions):
     combined_transactions = {}
     for t in transactions:
@@ -244,3 +250,13 @@ def consolidate_transactions(transactions):
         except KeyError:
             combined_transactions[t.btc_wallet_address] = t.amount_btc
     return combined_transactions
+
+
+def consolidate_notification_sms(transactions):
+    combined_sms = {}
+    for t in transactions:
+        try:
+            combined_sms[t.notification_phone_number].append(t.reference_number)
+        except KeyError:
+            combined_sms[t.notification_phone_number] = [t.reference_number]
+    return combined_sms

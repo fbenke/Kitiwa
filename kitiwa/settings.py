@@ -194,16 +194,17 @@ SENDGRID_EMAIL_FROM = 'noreply@kitiwa.com'
 SMSGH_CLIENT_ID = os.environ.get('SMSGH_CLIENT_ID')
 SMSGH_CLIENT_SECRET = os.environ.get('SMSGH_CLIENT_SECRET')
 SMSGH_SEND_MESSAGE = 'https://api.smsgh.com/v3/messages'
-SMSGH_CONTENT = 'Your bitcoin order #{} has been processed! Please check your'\
-    ' bitcoin wallet and confirm that you\'ve received it on our Facebook page:'\
-    ' fb.com/kitiwaBTC'
+SMSGH_USER = os.environ.get('SMSGH_USER')
+SMSGH_PASSWORD = os.environ.get('SMSGH_PASSWORD')
+SMSGH_CHECK_BALANCE = 'http://www.mytxtbox.com/smsghapi.ashx/getbalance'
+
 
 # Notification Settings
 NOTIFY_ADMIN_PAID = bool(int(os.environ.get('NOTIFY_ADMIN_PAID', '1')))
 
 if NOTIFY_ADMIN_PAID:
-    SENDGRID_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be processed'
-    SENDGRID_EMAIL_BODY_PAID = \
+    NOTIFY_ADMIN_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be processed'
+    NOTIFY_ADMIN_EMAIL_BODY_PAID = \
         '''
         Dear Admin,
         there are transactions on {} waiting to be processed.
@@ -211,9 +212,9 @@ if NOTIFY_ADMIN_PAID:
         Sincerely,
         the SendGridBot
         '''
-    SENDGRID_TRANSACTION_THRESHOLD = os.environ.get('SENDGRID_TRANSACTION_THRESHOLD')
+    NOTIFY_ADMIN_TRANSACTION_THRESHOLD = os.environ.get('NOTIFY_ADMIN_TRANSACTION_THRESHOLD')
 
+NOTIFY_USER_CONF_REF_TEXT_SINGLE = 'Your bitcoin order #{} has been processed!'
+NOTIFY_USER_CONF_REF_TEXT_MULTIPLE = 'The following bitcoin orders have been processed: #{}!'
+NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm that you\'ve received it on our Facebook page: fb.com/kitiwaBTC'
 
-SMSGH_USER = os.environ.get('SMSGH_USER')
-SMSGH_PASSWORD = os.environ.get('SMSGH_PASSWORD')
-SMSGH_CHECK_BALANCE = 'http://www.mytxtbox.com/smsghapi.ashx/getbalance'
