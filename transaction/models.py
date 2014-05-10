@@ -1,10 +1,11 @@
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
 from django_extensions.db.fields import UUIDField
 import math
 import random
 from kitiwa.settings import ONE_SATOSHI
+from transaction.utils import is_valid_btc_address
 
 
 class Pricing(models.Model):
@@ -220,12 +221,24 @@ class Transaction(models.Model):
 
     def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()
-        usd_in_ghs = self.amount_usd * self.pricing.ghs_usd
         # floor to 2 decimal places
-        self.amount_ghs = math.floor(usd_in_ghs * (1 + self.pricing.markup) * 100) / 100
+        self.amount_ghs = self.amount_usd * (math.floor(self.pricing.ghs_usd * (1 + self.pricing.markup) * 100) / 100)
 
     def generate_reference_number(self):
         self.reference_number = str(random.randint(10000, 999999))
+
+    def save(self, *args, **kwargs):
+        if is_valid_btc_address(self.btc_wallet_address):
+            if not self.pk:
+                self.calculate_ghs_price()
+                self.generate_reference_number()
+            else:
+                original = Transaction.objects.get(pk=self.pk)
+                if original.pricing != self.pricing:
+                    raise ValidationError('Pricing cannot be changed after initialization')
+            super(Transaction, self).save(*args, **kwargs)
+        else:
+            raise ValidationError('Invalid BTC address')
 
     def update_btc(self, rate):
         self.amount_btc = int(math.ceil((self.amount_usd/rate)*ONE_SATOSHI))

@@ -21,8 +21,7 @@ class TransactionAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = (
-        'id', 'notification_phone_number', 'amount_ghs', 'amount_usd',
-        'amount_btc', 'initialized_at', 'processed_exchange_rate',
+        'id', 'amount_ghs', 'amount_btc', 'initialized_at', 'processed_exchange_rate',
         'transaction_uuid', 'reference_number', 'mpower_response_code',
         'mpower_response_text', 'mpower_opr_token', 'mpower_confirm_token',
         'mpower_receipt_url', 'smsgh_response_status', 'smsgh_message_id',
