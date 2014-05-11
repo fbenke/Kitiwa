@@ -139,6 +139,11 @@ domains of the angular apps should be allowed using CORS_ORIGIN_WHITELIST
 '''
 CORS_ORIGIN_ALLOW_ALL = True
 
+# Proxies
+proxies = {
+    "http": os.environ['QUOTAGUARDSTATIC_URL']
+}
+
 
 # Bitcoin general settings
 ONE_SATOSHI = 100000000
@@ -216,3 +221,31 @@ if NOTIFY_ADMIN_PAID:
 NOTIFY_USER_CONF_REF_TEXT_SINGLE = 'Your bitcoin order #{} has been processed!'
 NOTIFY_USER_CONF_REF_TEXT_MULTIPLE = 'The following bitcoin orders have been processed: #{}!'
 NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm that you\'ve received it on our Facebook page: fb.com/kitiwaBTC'
+NOTIFY_USER_TOPUP = 'Hello, you\'ve been rewarded {} cedis of phone credit for using Kitiwa. Come back soon! <3 :) http://fb.com/kitiwaBTC'
+
+
+# Noxxi Settings
+NOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('NOXXI_TOP_UP_ENABLED', '1')))
+
+if NOXXI_TOP_UP_ENABLED:
+    NOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
+    NOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
+    NOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
+    NOXXI_TOPUP_PERCENTAGE = 0.01
+    NOXXI_NETWORK_CODES = {
+        # Tigo
+        '027': '005',
+        '057': '005',
+        # MTN
+        '024': '004',
+        '054': '004',
+        # Airtel
+        '026': '001',
+        # Vodafone
+        '020': '007',
+        '050': '007',
+        # Expresso
+        '028': '002',
+        # GLO
+        '023': '003'
+    }

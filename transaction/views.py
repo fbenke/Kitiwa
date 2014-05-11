@@ -12,10 +12,11 @@ from rest_framework.throttling import AnonRateThrottle
 
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
+from kitiwa.settings import NOXXI_TOPUP_PERCENTAGE
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
-from transaction.api_calls import sendgrid_mail, mpower, smsgh
+from transaction.api_calls import sendgrid_mail, mpower, smsgh, noxxi
 from transaction import serializers
 from transaction import permissions
 from transaction import utils
@@ -215,10 +216,12 @@ def accept(request):
         else:
             transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
 
-            combined_sms = consolidate_notification_sms(transactions)
+            combined_sms_confirm, combined_sms_topup = \
+                consolidate_notification_sms(transactions)
 
-            for number, reference_numbers in combined_sms.iteritems():
-                response_status, message_id = smsgh.send_message(
+            # send out confirmation SMS
+            for number, reference_numbers in combined_sms_confirm.iteritems():
+                response_status, message_id = smsgh.send_message_confirm(
                     mobile_number=number,
                     reference_numbers=reference_numbers
                 )
@@ -227,6 +230,21 @@ def accept(request):
 
                     t.update_after_sms_notification(
                         response_status, message_id
+                    )
+
+            # top up account
+            for number, amount in combined_sms_topup.iteritems():
+                topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
+
+                if topup > 0.20:
+                    noxxi.direct_top_up(
+                        mobile_number=number,
+                        amount=topup
+                    )
+
+                    smsgh.send_message_topup(
+                        mobile_number=number,
+                        topup=topup
                     )
 
             return Response({'status': 'success'})
@@ -253,10 +271,17 @@ def consolidate_transactions(transactions):
 
 
 def consolidate_notification_sms(transactions):
-    combined_sms = {}
+    combined_sms_confirm = {}
+    combined_sms_topup = {}
     for t in transactions:
         try:
-            combined_sms[t.notification_phone_number].append(t.reference_number)
+            combined_sms_confirm[t.notification_phone_number].append(t.reference_number)
         except KeyError:
-            combined_sms[t.notification_phone_number] = [t.reference_number]
-    return combined_sms
+            combined_sms_confirm[t.notification_phone_number] = [t.reference_number]
+
+        try:
+            combined_sms_topup[t.notification_phone_number] += t.amount_ghs
+        except (TypeError, KeyError):
+            combined_sms_topup[t.notification_phone_number] = t.amount_ghs
+
+    return combined_sms_confirm, combined_sms_topup
