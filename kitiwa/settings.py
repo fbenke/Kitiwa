@@ -205,18 +205,16 @@ SMSGH_CHECK_BALANCE = 'http://www.mytxtbox.com/smsghapi.ashx/getbalance'
 
 # Notification Settings
 NOTIFY_ADMIN_PAID = bool(int(os.environ.get('NOTIFY_ADMIN_PAID', '1')))
+NOTIFY_ADMIN_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be processed'
+NOTIFY_ADMIN_EMAIL_BODY_PAID = \
+    '''
+    Dear Admin,
+    there are transactions on {} waiting to be processed.
 
-if NOTIFY_ADMIN_PAID:
-    NOTIFY_ADMIN_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be processed'
-    NOTIFY_ADMIN_EMAIL_BODY_PAID = \
-        '''
-        Dear Admin,
-        there are transactions on {} waiting to be processed.
-
-        Sincerely,
-        the SendGridBot
-        '''
-    NOTIFY_ADMIN_TRANSACTION_THRESHOLD = os.environ.get('NOTIFY_ADMIN_TRANSACTION_THRESHOLD')
+    Sincerely,
+    the SendGridBot
+    '''
+NOTIFY_ADMIN_TRANSACTION_THRESHOLD = os.environ.get('NOTIFY_ADMIN_TRANSACTION_THRESHOLD')
 
 NOTIFY_USER_CONF_REF_TEXT_SINGLE = 'Your bitcoin order #{} has been processed!'
 NOTIFY_USER_CONF_REF_TEXT_MULTIPLE = 'The following bitcoin orders have been processed: #{}!'
@@ -227,25 +225,24 @@ NOTIFY_USER_TOPUP = 'Hello, you\'ve been rewarded {} cedis of phone credit for u
 # Noxxi Settings
 NOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('NOXXI_TOP_UP_ENABLED', '1')))
 
-if NOXXI_TOP_UP_ENABLED:
-    NOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
-    NOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
-    NOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
-    NOXXI_TOPUP_PERCENTAGE = 0.01
-    NOXXI_NETWORK_CODES = {
-        # Tigo
-        '027': '005',
-        '057': '005',
-        # MTN
-        '024': '004',
-        '054': '004',
-        # Airtel
-        '026': '001',
-        # Vodafone
-        '020': '007',
-        '050': '007',
-        # Expresso
-        '028': '002',
-        # GLO
-        '023': '003'
-    }
+NOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
+NOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
+NOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
+NOXXI_TOPUP_PERCENTAGE = 0.01
+NOXXI_NETWORK_CODES = {
+    # Tigo
+    '027': '005',
+    '057': '005',
+    # MTN
+    '024': '004',
+    '054': '004',
+    # Airtel
+    '026': '001',
+    # Vodafone
+    '020': '007',
+    '050': '007',
+    # Expresso
+    '028': '002',
+    # GLO
+    '023': '003'
+}

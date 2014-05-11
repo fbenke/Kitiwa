@@ -12,7 +12,7 @@ from rest_framework.throttling import AnonRateThrottle
 
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
-from kitiwa.settings import NOXXI_TOPUP_PERCENTAGE
+from kitiwa.settings import NOXXI_TOPUP_PERCENTAGE, NOXXI_TOP_UP_ENABLED
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
@@ -20,6 +20,8 @@ from transaction.api_calls import sendgrid_mail, mpower, smsgh, noxxi
 from transaction import serializers
 from transaction import permissions
 from transaction import utils
+
+from kitiwa.transaction.utils import log_error
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -233,19 +235,20 @@ def accept(request):
                     )
 
             # top up account
-            for number, amount in combined_sms_topup.iteritems():
-                topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
+            if NOXXI_TOP_UP_ENABLED:
+                for number, amount in combined_sms_topup.iteritems():
+                    topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
 
-                if topup > 0.20:
-                    noxxi.direct_top_up(
-                        mobile_number=number,
-                        amount=topup
-                    )
+                    if topup > 0.20:
+                        noxxi.direct_top_up(
+                            mobile_number=number,
+                            amount=topup
+                        )
 
-                    smsgh.send_message_topup(
-                        mobile_number=number,
-                        topup=topup
-                    )
+                        smsgh.send_message_topup(
+                            mobile_number=number,
+                            topup=topup
+                        )
 
             return Response({'status': 'success'})
     except requests.RequestException:
@@ -285,3 +288,8 @@ def consolidate_notification_sms(transactions):
             combined_sms_topup[t.notification_phone_number] = t.amount_ghs
 
     return combined_sms_confirm, combined_sms_topup
+
+
+@api_view(['GET'])
+def test(request):
+    log_error('Oops')

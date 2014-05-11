@@ -23,6 +23,7 @@ pricing_detail = views.PricingViewSet.as_view({
 
 urlpatterns = patterns(
     '',
+    url(r'^transaction/test$', 'transaction.views.test'),
     url(r'^transaction/$', transaction_list, name='transaction'),
     url(r'^transaction/(?P<pk>[0-9]+)/$', transaction_detail,
         name='transaction-detail'),

@@ -1,6 +1,7 @@
 import requests
 import re
 from requests.auth import HTTPBasicAuth
+from kitiwa.transactions.utils import log_error
 import json
 
 from kitiwa.settings import SMSGH_CLIENT_ID, SMSGH_CLIENT_SECRET,\
@@ -9,7 +10,7 @@ from kitiwa.settings import SMSGH_CLIENT_ID, SMSGH_CLIENT_SECRET,\
 from kitiwa.settings import NOTIFY_USER_CONF_REF_TEXT_SINGLE,\
     NOTIFY_USER_CONF_REF_TEXT_MULTIPLE, NOTIFY_USER_CONF_CALL_TO_ACTION
 
-from kitiwa.settings import NOTIFY_USER_TOPUP
+from kitiwa.settings import NOTIFY_USER_TOPUP, NOXXI_TOP_UP_ENABLED
 
 
 def send_message_confirm(mobile_number, reference_numbers):
@@ -27,6 +28,9 @@ def send_message_confirm(mobile_number, reference_numbers):
 
 
 def send_message_topup(mobile_number, topup):
+
+    if not NOXXI_TOP_UP_ENABLED:
+        return
 
     content = NOTIFY_USER_TOPUP.format(topup)
 
@@ -64,7 +68,10 @@ def _send_message(mobile_number, content):
     try:
         message_id = decoded_response['MessageId']
     except KeyError:
-        # logging ? maybe completerly replace storing in db
+        message = 'SMSGH: Failed to send message to {}. '\
+                  'Status: {}. Message: {}.'
+        message.format(mobile_number, response_status, content)
+        log_error(message)
         message_id = ''
 
     return response_status, message_id
@@ -86,7 +93,7 @@ def check_balance():
     try:
         balance = float(re.search(r'\d+.\d+', response.text).group(0))
     except IndexError:
-        # TODO: Logging
+        log_error('SMSGH: Failed to check balance.')
         return
 
     return balance

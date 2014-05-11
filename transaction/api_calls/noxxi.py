@@ -1,8 +1,9 @@
 import requests
 import hashlib
 import time
-from kitiwa.settings import NOXXI_USER_NAME, NOXXI_API_KEY,\
-    NOXXI_BASE_URL, NOXXI_NETWORK_CODES, proxies, NOXXI_TOP_UP_ENABLED
+from kitiwa.transactions.utils import log_error
+from kitiwa.settings import NOXXI_TOP_UP_ENABLED, NOXXI_USER_NAME,\
+    NOXXI_API_KEY, NOXXI_BASE_URL, NOXXI_NETWORK_CODES, proxies
 
 
 def direct_top_up(mobile_number, amount, action='14', offset='0'):
@@ -42,8 +43,13 @@ def direct_top_up(mobile_number, amount, action='14', offset='0'):
     try:
         response_code = response.text[0:2]
         if response_code != '00':
-            pass
-            # logging
+            message = 'Noxxi: Failed to top up phone number {} (amount: {}). '\
+                      'Response code: {}'
+            message.format(mobile_number, amount, response_code)
+            log_error(message)
+
     except TypeError:
-        pass
-        # logging
+        message = 'Noxxi: Failed to top up phone number {} (amount: {}). '\
+                  'No response code received.'
+        message.format(mobile_number, amount, response_code)
+        log_error(message)
