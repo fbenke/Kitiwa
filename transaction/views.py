@@ -21,8 +21,6 @@ from transaction import serializers
 from transaction import permissions
 from transaction import utils
 
-from kitiwa.transaction.utils import log_error
-
 
 class TransactionViewSet(viewsets.ModelViewSet):
 
@@ -292,4 +290,5 @@ def consolidate_notification_sms(transactions):
 
 @api_view(['GET'])
 def test(request):
-    log_error('Oops')
+    utils.log_error('Oops')
+    return Response()

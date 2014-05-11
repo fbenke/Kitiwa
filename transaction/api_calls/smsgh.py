@@ -1,7 +1,7 @@
 import requests
 import re
 from requests.auth import HTTPBasicAuth
-from kitiwa.transactions.utils import log_error
+from transaction.utils import log_error
 import json
 
 from kitiwa.settings import SMSGH_CLIENT_ID, SMSGH_CLIENT_SECRET,\

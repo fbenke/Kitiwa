@@ -1,7 +1,7 @@
 import requests
 import hashlib
 import time
-from kitiwa.transactions.utils import log_error
+from transaction.utils import log_error
 from kitiwa.settings import NOXXI_TOP_UP_ENABLED, NOXXI_USER_NAME,\
     NOXXI_API_KEY, NOXXI_BASE_URL, NOXXI_NETWORK_CODES, proxies
 
