@@ -20,8 +20,8 @@ ALLOWED_HOSTS = ['*']
 ENV = os.environ.get('ENV')
 
 ENV_NAMES = {
-    'dev': 'vip.kitiwa.com',
-    'test': 'kitiwa-test.com',
+    'dev': 'kitiwa-dev.com',
+    'vip': 'kitiwa-vip.com',
     'prod': 'kitiwa.com'
 }
 
