@@ -20,7 +20,6 @@ def get_balance(request):
         if rate is not None:
             btc = decimal.Decimal(r.json().get('balance'))/s.ONE_SATOSHI
             usd = btc * decimal.Decimal(rate)
-            print btc, usd
             return Response({'btc': btc, 'usd': '{0:.2f}'.format(usd), 'rate': rate})
 
 

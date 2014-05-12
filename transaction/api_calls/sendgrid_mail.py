@@ -10,6 +10,7 @@ from kitiwa.settings import ENV, ENV_NAMES
 
 from django.contrib.auth.models import User
 from transaction.models import Transaction
+from transaction.utils import log_error
 
 
 def send_mail_to_admins(subject, body):
@@ -28,7 +29,7 @@ def send_mail_to_admins(subject, body):
     try:
         sg.send(message)
     except sendgrid.SendGridError:
-        # todo get logging in place
+        log_error('Sendgrid: Failed to send mail to admins.')
         pass
 
 

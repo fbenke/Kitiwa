@@ -51,5 +51,5 @@ def direct_top_up(mobile_number, amount, action='14', offset='0'):
     except TypeError:
         message = 'Noxxi: Failed to top up phone number {} (amount: {}). '\
                   'No response code received.'
-        message.format(mobile_number, amount, response_code)
+        message.format(mobile_number, amount)
         log_error(message)
