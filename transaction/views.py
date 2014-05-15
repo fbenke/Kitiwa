@@ -113,18 +113,17 @@ class TransactionOprCharge(APIView):
 
             serializer.save()
 
-            response_code, response_text, \
-                receipt_url = mpower.opr_charge_action(
-                    opr_token=transaction.mpower_opr_token,
-                    confirm_token=serializer.data['mpower_confirm_token']
-                )
+            response_code, response_text = mpower.opr_charge_action(
+                opr_token=transaction.mpower_opr_token,
+                confirm_token=serializer.data['mpower_confirm_token']
+            )
 
             transaction = Transaction.objects.get(id=transaction.id)
 
             transaction.update_after_opr_charge(
                 response_code=response_code,
-                response_text=response_text,
-                receipt_url=receipt_url)
+                response_text=response_text
+            )
 
             response = Response()
 
@@ -134,7 +133,6 @@ class TransactionOprCharge(APIView):
             }
 
             if response_code == '00':
-                payload['mpower_receipt_url'] = receipt_url
                 sendgrid_mail.notify_admins_paid()
             elif (response_code == '3001') or\
                  (response_code == '1001' and response_text.find(MPOWER_INVD_TOKEN_ERROR_MSG) != -1):

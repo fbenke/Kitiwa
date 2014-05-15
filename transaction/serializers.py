@@ -17,8 +17,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             'mpower_opr_token', 'transaction_uuid', 'reference_number',
             'mpower_invoice_token', 'mpower_response_code',
             'mpower_response_text', 'mpower_confirm_token',
-            'mpower_receipt_url', 'smsgh_response_status',
-            'smsgh_message_id',
+            'smsgh_response_status', 'smsgh_message_id',
         )
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
@@ -27,8 +26,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             'mpower_opr_token', 'transaction_uuid', 'reference_number',
             'mpower_invoice_token', 'mpower_response_code',
             'mpower_response_text', 'mpower_confirm_token',
-            'mpower_receipt_url', 'smsgh_response_status',
-            'smsgh_message_id',
+            'smsgh_response_status', 'smsgh_message_id',
         )
 
     def validate_btc_wallet_address(self, attrs, source):
@@ -60,6 +58,13 @@ class TransactionOprChargeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ('transaction_uuid', 'mpower_confirm_token',)
+
+    def validate_mpower_confirm_token(self, attrs, source):
+        if not re.match(r'^[0-9]{4}$', attrs[source]):
+            raise serializers.ValidationError(
+                'must be a 4-digit pin'
+            )
+        return attrs
 
 
 class PricingSerializer(serializers.ModelSerializer):

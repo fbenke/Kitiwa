@@ -75,9 +75,4 @@ def opr_charge_action(opr_token, confirm_token):
     response_code = decoded_response['response_code']
     response_text = decoded_response['response_text']
 
-    try:
-        receipt_url = decoded_response['invoice_data']['receipt_url']
-    except KeyError:
-        receipt_url = ''
-
-    return response_code, response_text, receipt_url
+    return response_code, response_text

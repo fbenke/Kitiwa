@@ -197,13 +197,6 @@ class Transaction(models.Model):
         help_text='Only stored for tracking record'
     )
 
-    mpower_receipt_url = models.CharField(
-        'URL to generated PDF receipt for this transaction',
-        max_length=100,
-        blank=True,
-        help_text='Only stored for tracking record'
-    )
-
     # mpower specific fields
     smsgh_response_status = models.CharField(
         'Response code sent by SMSGH',
@@ -261,12 +254,10 @@ class Transaction(models.Model):
             self.declined_at = timezone.now()
         self.save()
 
-    def update_after_opr_charge(
-            self, response_code, response_text, receipt_url):
+    def update_after_opr_charge(self, response_code, response_text):
 
         self.mpower_response_code = response_code
         self.mpower_response_text = response_text
-        self.mpower_receipt_url = receipt_url
 
         if response_code == '00':
             self.state = Transaction.PAID
