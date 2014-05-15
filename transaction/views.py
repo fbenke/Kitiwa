@@ -50,6 +50,10 @@ class TransactionViewSet(viewsets.ModelViewSet):
             if response_code == '00':
                 response.data['transaction_uuid'] = transaction_uuid
                 response.data['amount_ghs'] = amount_ghs
+            elif response_code == '1001':
+                response.status_code = 500
+            else:
+                response.status_code = 400
 
         except KeyError:
             response.status_code = 400
@@ -127,7 +131,6 @@ class TransactionOprCharge(APIView):
 
             if response_code == '00':
                 response['mpower_receipt_url'] = receipt_url
-
                 sendgrid_mail.notify_admins_paid()
 
             return Response(response)
