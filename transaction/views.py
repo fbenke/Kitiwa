@@ -52,7 +52,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 response.data['amount_ghs'] = amount_ghs
 
         except KeyError:
-            response.data = {}
+            response.status_code = 400
+            return response
         return response
 
     def get_queryset(self):
@@ -145,7 +146,6 @@ class PricingViewSet(viewsets.ModelViewSet):
 
 class PricingCurrent(RetrieveAPIView):
     serializer_class = serializers.PricingSerializer
-    permission_classes = (IsAdminUser,)
 
     def retrieve(self, request, *args, **kwargs):
         self.object = Pricing.objects.get(end__isnull=True)
