@@ -144,7 +144,6 @@ class PricingViewSet(viewsets.ModelViewSet):
 
 class PricingCurrent(RetrieveAPIView):
     serializer_class = serializers.PricingSerializer
-    permission_classes = (IsAdminUser,)
 
     def retrieve(self, request, *args, **kwargs):
         self.object = Pricing.objects.get(end__isnull=True)
