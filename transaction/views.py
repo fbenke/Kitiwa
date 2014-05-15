@@ -53,13 +53,13 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 response.data['transaction_uuid'] = transaction_uuid
                 response.data['amount_ghs'] = amount_ghs
             elif response_code == '1001' and response_text.find(MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG) != -1:
-                response.status_code = 400
+                response.status_code = status.HTTP_400_BAD_REQUEST
             else:
-                response.status_code = 500
+                response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
         except KeyError:
-            response.status_code = 400
-            return response
+            response.status_code = status.HTTP_400_BAD_REQUEST
+
         return response
 
     def get_queryset(self):
@@ -138,9 +138,9 @@ class TransactionOprCharge(APIView):
                 sendgrid_mail.notify_admins_paid()
             elif (response_code == '3001') or\
                  (response_code == '1001' and response_text.find(MPOWER_INVD_TOKEN_ERROR_MSG) != -1):
-                response.status_code = 400
+                response.status_code = status.HTTP_400_BAD_REQUEST
             else:
-                response.status_code = 500
+                response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
             response.data = payload
 
