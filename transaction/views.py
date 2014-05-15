@@ -43,14 +43,16 @@ class TransactionViewSet(viewsets.ModelViewSet):
             response.data = {
                 'mpower_response_code': response_code,
                 'mpower_response_text': response_text,
-                'reference_number': reference_number
+                'reference_number': reference_number,
+                'price': self.amount_ghs
             }
 
             if response_code == '00':
                 response.data['transaction_uuid'] = transaction_uuid
 
         except KeyError:
-            response.data = {}
+            response.status_code = 400
+            return response
         return response
 
     def get_queryset(self):
