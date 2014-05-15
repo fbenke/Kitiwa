@@ -187,7 +187,8 @@ MPOWER_ENDPOINT_OPR_TOKEN_CHARGE = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_CHA
 MPOWER_MASTER_KEY = os.environ.get('MPOWER_MASTER_KEY')
 MPOWER_PRIVATE_KEY = os.environ.get('MPOWER_PRIVATE_KEY')
 MPOWER_TOKEN = os.environ.get('MPOWER_TOKEN')
-MPOWER_AUTHENTICATION_ERROR_MSG = ('Private Key and Token combination is invalid')
+MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG = ('Invalid account alias')
+MPOWER_INVD_TOKEN_ERROR_MSG = ('Invalid payment request confirmation token specified')
 
 
 # Sendgrid Settings

@@ -13,7 +13,8 @@ from rest_framework.throttling import AnonRateThrottle
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import NOXXI_TOPUP_PERCENTAGE, NOXXI_TOP_UP_ENABLED
-from kitiwa.settings import MPOWER_AUTHENTICATION_ERROR_MSG
+from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG,\
+    MPOWER_INVD_TOKEN_ERROR_MSG
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
@@ -51,10 +52,10 @@ class TransactionViewSet(viewsets.ModelViewSet):
             if response_code == '00':
                 response.data['transaction_uuid'] = transaction_uuid
                 response.data['amount_ghs'] = amount_ghs
-            elif response_text.find(MPOWER_AUTHENTICATION_ERROR_MSG) != -1:
-                response.status_code = 500
-            else:
+            elif response_code == '1001' and response_text.find(MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG) != -1:
                 response.status_code = 400
+            else:
+                response.status_code = 500
 
         except KeyError:
             response.status_code = 400
@@ -125,18 +126,25 @@ class TransactionOprCharge(APIView):
                 response_text=response_text,
                 receipt_url=receipt_url)
 
-            response = {
+            response = Response()
+
+            payload = {
                 'mpower_response_code': response_code,
                 'mpower_response_text': response_text,
             }
 
             if response_code == '00':
-                response['mpower_receipt_url'] = receipt_url
+                payload['mpower_receipt_url'] = receipt_url
                 sendgrid_mail.notify_admins_paid()
-            else:
+            elif (response_code == '3001') or\
+                 (response_code == '1001' and response_text.find(MPOWER_INVD_TOKEN_ERROR_MSG) != -1):
                 response.status_code = 400
+            else:
+                response.status_code = 500
 
-            return Response(response)
+            response.data = payload
+
+            return response
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
