@@ -43,8 +43,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             response.data = {
                 'mpower_response_code': response_code,
                 'mpower_response_text': response_text,
-                'reference_number': reference_number,
-                'price': self.amount_ghs
+                'reference_number': reference_number
             }
 
             if response_code == '00':
