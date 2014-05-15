@@ -39,6 +39,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             response_code = response.data['mpower_response_code']
             response_text = response.data['mpower_response_text']
             reference_number = response.data['reference_number']
+            amount_ghs = response.data['amount_ghs']
 
             response.data = {
                 'mpower_response_code': response_code,
@@ -48,6 +49,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
             if response_code == '00':
                 response.data['transaction_uuid'] = transaction_uuid
+                response.data['amount_ghs'] = amount_ghs
 
         except KeyError:
             response.data = {}
