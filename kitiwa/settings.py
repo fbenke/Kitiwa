@@ -147,7 +147,7 @@ proxies = {
 
 # Bitcoin general settings
 ONE_SATOSHI = 100000000
-BITCOIN_NOTE = 'Buy bitcoins in Ghana @ https://kitiwa.com'
+BITCOIN_NOTE = 'Buy bitcoins in Ghana @ http://kitiwa.com'
 
 # Blockchain settings
 BLOCKCHAIN_GUID = os.environ.get('BLOCKCHAIN_GUID')
