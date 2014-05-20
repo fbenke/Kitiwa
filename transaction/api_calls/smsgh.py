@@ -48,7 +48,7 @@ def _send_message(mobile_number, content):
     }
 
     payload = {
-        'From': 'kitiwa',
+        'From': 'Kitiwa',
         'To': mobile_number,
         'Content': content,
         'RegisteredDelivery': 'true'
