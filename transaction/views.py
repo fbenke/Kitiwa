@@ -300,9 +300,3 @@ def consolidate_notification_sms(transactions):
             combined_sms_topup[t.notification_phone_number] = t.amount_ghs
 
     return combined_sms_confirm, combined_sms_topup
-
-
-@api_view(['GET'])
-def test(request):
-    utils.log_error("This logging shit works")
-    return Response()

@@ -68,10 +68,9 @@ def _send_message(mobile_number, content):
     try:
         message_id = decoded_response['MessageId']
     except KeyError:
-        message = 'SMSGH: Failed to send message to {}. '\
+        message = 'ERROR - SMSGH: Failed to send message to {}. '\
                   'Status: {}. Message: {}.'
-        message.format(mobile_number, response_status, content)
-        log_error(message)
+        log_error(message.format(mobile_number, response_status, content))
         message_id = ''
 
     return response_status, message_id

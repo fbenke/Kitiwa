@@ -43,13 +43,11 @@ def direct_top_up(mobile_number, amount, action='14', offset='0'):
     try:
         response_code = response.text[0:2]
         if response_code != '00':
-            message = 'Noxxi: Failed to top up phone number {} (amount: {}). '\
-                      'Response code: {}'
-            message.format(mobile_number, amount, response_code)
-            log_error(message)
+            message = 'ERROR - Knoxxi: Failed to top up phone number {} '\
+                      '(amount: {}). Response code: {}.'
+            log_error(message.format(mobile_number, amount, response_code))
 
     except TypeError:
-        message = 'Noxxi: Failed to top up phone number {} (amount: {}). '\
-                  'No response code received.'
-        message.format(mobile_number, amount)
-        log_error(message)
+        message = 'ERROR - Knoxxi: Failed to top up phone number {} '\
+                  '(amount: {}). No response code received.'
+        log_error(message.format(mobile_number, amount))
