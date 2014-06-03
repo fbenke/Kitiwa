@@ -92,7 +92,7 @@ def check_balance():
     try:
         balance = float(re.search(r'\d+.\d+', response.text).group(0))
     except IndexError:
-        log_error('SMSGH: Failed to check balance.')
+        log_error('ERROR - SMSGH: Failed to check balance.')
         return
 
     return balance
