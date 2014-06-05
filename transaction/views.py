@@ -252,15 +252,17 @@ def accept(request):
                     topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
 
                     if topup > 0.20:
-                        noxxi.direct_top_up(
+                        success = noxxi.direct_top_up(
                             mobile_number=number,
                             amount=topup
                         )
 
-                        smsgh.send_message_topup(
-                            mobile_number=number,
-                            topup=topup
-                        )
+                        if success:
+
+                            smsgh.send_message_topup(
+                                mobile_number=number,
+                                topup=topup
+                            )
 
             return Response({'status': 'success'})
     except requests.RequestException:

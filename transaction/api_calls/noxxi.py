@@ -46,8 +46,12 @@ def direct_top_up(mobile_number, amount, action='14', offset='0'):
             message = 'ERROR - Knoxxi: Failed to top up phone number {} '\
                       '(amount: {}). Response code: {}.'
             log_error(message.format(mobile_number, amount, response_code))
+            return False
 
     except TypeError:
         message = 'ERROR - Knoxxi: Failed to top up phone number {} '\
                   '(amount: {}). No response code received.'
         log_error(message.format(mobile_number, amount))
+        return False
+
+    return True
