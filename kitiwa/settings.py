@@ -51,9 +51,13 @@ LOCAL_APPS = (
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+if ENV != 'dev':
+    print ENV
+    PRODUCTION_MIDDLEWARE = ('sslify.middleware.SSLifyMiddleware',)
+else:
+    PRODUCTION_MIDDLEWARE = ()
 
-MIDDLEWARE_CLASSES = (
-    'sslify.middleware.SSLifyMiddleware',
+MIDDLEWARE_CLASSES = PRODUCTION_MIDDLEWARE + (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
