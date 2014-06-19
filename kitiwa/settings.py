@@ -52,7 +52,6 @@ LOCAL_APPS = (
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 if ENV != 'dev':
-    print ENV
     PRODUCTION_MIDDLEWARE = ('sslify.middleware.SSLifyMiddleware',)
 else:
     PRODUCTION_MIDDLEWARE = ()
