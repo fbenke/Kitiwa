@@ -1,4 +1,4 @@
-from django.db import transaction
+from django.db import transaction as dbtransaction
 from django.utils.datetime_safe import datetime
 import requests
 
@@ -23,6 +23,7 @@ from transaction.api_calls import sendgrid_mail, mpower, smsgh, noxxi
 from transaction import serializers
 from transaction import permissions
 from transaction import utils
+from transaction.utils import AcceptException
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -188,70 +189,80 @@ class PricingCurrent(RetrieveAPIView):
 @permission_classes((IsAdminUser,))
 def accept(request):
 
-    with transaction.atomic():
-        # Expects a comma separated list of ids as a POST param called ids
-        try:
-            password1 = request.POST.get('password1', None)
-            password2 = request.POST.get('password2', None)
-            transactions = Transaction.objects.select_for_update().filter(id__in=request.POST.get('ids', None).split(','))
-        except (Transaction.DoesNotExist, ValueError, AttributeError):
-            return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        with dbtransaction.atomic():
+            # Expects a comma separated list of ids as a POST param called ids
+            try:
+                password1 = request.POST.get('password1', None)
+                password2 = request.POST.get('password2', None)
+                transactions = Transaction.objects.select_for_update().filter(id__in=request.POST.get('ids', None).split(','))
+            except (Transaction.DoesNotExist, ValueError, AttributeError):
+                raise AcceptException({'detail': 'Invalid ID'}, status.HTTP_400_BAD_REQUEST)
+                # return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # VALIDATION
-        # Validate Input
-        if not transactions or not password1 or not password2:
-            return Response({'detail': 'Invalid IDs and/or Passwords'}, status=status.HTTP_400_BAD_REQUEST)
+            # VALIDATION
+            # Validate Input
+            if not transactions or not password1 or not password2:
+                raise AcceptException({'detail': 'Invalid IDs and/or Passwords'}, status.HTTP_400_BAD_REQUEST)
+                # return Response({'detail': 'Invalid IDs and/or Passwords'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # If any transaction is not PAID, fail the whole request
-        for t in transactions:
-            if t.state != Transaction.PAID:
-                return Response({'detail': 'Wrong state', 'id': t.id, 'state': t.state},
-                                status=status.HTTP_403_FORBIDDEN)
+            # If any transaction is not PAID, fail the whole request
+            for t in transactions:
+                if t.state != Transaction.PAID:
+                    raise AcceptException({'detail': 'Wrong state', 'id': t.id, 'state': t.state},
+                                    status.HTTP_403_FORBIDDEN)
+                    # return Response({'detail': 'Wrong state', 'id': t.id, 'state': t.state},
+                    #                 status=status.HTTP_403_FORBIDDEN)
 
-        # Make sure that there are enough credits in smsgh account to send out confirmation sms
-        smsgh_balance = smsgh.check_balance()
+            # Make sure that there are enough credits in smsgh account to send out confirmation sms
+            smsgh_balance = smsgh.check_balance()
 
-        if smsgh_balance is not None:
-            if smsgh_balance < len(transactions):
-                return Response(
-                    {'detail': 'Not enough credit on SMSGH account'},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+            if smsgh_balance is not None:
+                if smsgh_balance < len(transactions):
+                    raise AcceptException({'detail': 'Not enough credit on SMSGH account'},
+                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    # return Response(
+                    #     {'detail': 'Not enough credit on SMSGH account'},
+                    #     status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    # )
 
-        # USD-BTC CONVERSION
-        # Get latest exchange rate
-        rate = get_blockchain_exchange_rate()
-        if rate is None:
-            return Response({'detail': 'Failed to retrieve exchange rate'},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # USD-BTC CONVERSION
+            # Get latest exchange rate
+            rate = get_blockchain_exchange_rate()
+            if rate is None:
+                raise AcceptException({'detail': 'Failed to retrieve exchange rate'},
+                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
+                # return Response({'detail': 'Failed to retrieve exchange rate'},
+                #                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Update amount_btc based on latest exchange rate
-        for t in transactions:
-            t.update_btc(rate)
+            # Update amount_btc based on latest exchange rate
+            for t in transactions:
+                t.update_btc(rate)
 
-        # Combine transactions with same wallet address
-        combined_transactions = consolidate_transactions(transactions)
+            # Combine transactions with same wallet address
+            combined_transactions = consolidate_transactions(transactions)
 
-        # REQUEST
-        # Prepare request and send
-        recipients = utils.create_recipients_string(combined_transactions)
+            # REQUEST
+            # Prepare request and send
+            recipients = utils.create_recipients_string(combined_transactions)
 
-
-        r = None
-        btc_transfer_request_error = False
-        try:
-            r = requests.get(BLOCKCHAIN_API_SENDMANY, params={
-                'password': password1,
-                'second_password': password2,
-                'recipients': recipients,
-                'note': BITCOIN_NOTE
-            })
-            if r.json().get('error'):
+            r = None
+            btc_transfer_request_error = False
+            try:
+                r = requests.get(BLOCKCHAIN_API_SENDMANY, params={
+                    'password': password1,
+                    'second_password': password2,
+                    'recipients': recipients,
+                    'note': BITCOIN_NOTE
+                })
+                if r.json().get('error'):
+                    btc_transfer_request_error = True
+                else:
+                    transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
+            except requests.RequestException:
                 btc_transfer_request_error = True
-            else:
-                transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
-        except requests.RequestException:
-            btc_transfer_request_error = True
+    except AcceptException as e:
+        return Response(e.args[0], status=e.args[1])
 
     if btc_transfer_request_error:
         if r:
