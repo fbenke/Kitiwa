@@ -147,6 +147,8 @@ proxies = {
     "http": os.environ['QUOTAGUARDSTATIC_URL']
 }
 
+# Site settings
+MAXIMUM_AMOUNT_BTC_BUYING = 250
 
 # Bitcoin general settings
 ONE_SATOSHI = 100000000
