@@ -97,6 +97,11 @@ class PricingGHS(APIView):
     def get(self, request, format=None):
         try:
             amount_usd = float(request.QUERY_PARAMS.get('amount_usd'))
+            if (amount_usd != round(amount_usd, 2)):
+                return Response(
+                    {'detail': '\'amount_usd\' may not have more than 2 decimal places'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             unit_price = Pricing.get_current_pricing().get_unit_price()
             amount_ghs = round(amount_usd * unit_price, 1)
             return Response({'amount_ghs': amount_ghs})
