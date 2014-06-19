@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.utils.datetime_safe import datetime
 import requests
 
@@ -169,109 +170,109 @@ class PricingCurrent(RetrieveAPIView):
 @permission_classes((IsAdminUser,))
 def accept(request):
 
-    # Expects a comma separated list of ids as a POST param called ids
-    try:
-        password1 = request.POST.get('password1', None)
-        password2 = request.POST.get('password2', None)
-        transactions = Transaction.objects.filter(id__in=request.POST.get('ids', None).split(','))
-    except (Transaction.DoesNotExist, ValueError, AttributeError):
-        return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+    with transaction.atomic():
+        # Expects a comma separated list of ids as a POST param called ids
+        try:
+            password1 = request.POST.get('password1', None)
+            password2 = request.POST.get('password2', None)
+            transactions = Transaction.objects.select_for_update().filter(id__in=request.POST.get('ids', None).split(','))
+        except (Transaction.DoesNotExist, ValueError, AttributeError):
+            return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # VALIDATION
-    # Validate Input
-    if not transactions or not password1 or not password2:
-        return Response({'detail': 'Invalid IDs and/or Passwords'}, status=status.HTTP_400_BAD_REQUEST)
+        # VALIDATION
+        # Validate Input
+        if not transactions or not password1 or not password2:
+            return Response({'detail': 'Invalid IDs and/or Passwords'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Make sure that there are enough credits in smsgh account to send out confirmation sms
-    smsgh_balance = smsgh.check_balance()
+        # If any transaction is not PAID, fail the whole request
+        for t in transactions:
+            if t.state != Transaction.PAID:
+                return Response({'detail': 'Wrong state', 'id': t.id, 'state': t.state},
+                                status=status.HTTP_403_FORBIDDEN)
 
-    if smsgh_balance is not None:
-        if smsgh_balance < len(transactions):
-            return Response(
-                {'detail': 'Not enough credit on SMSGH account'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        # Make sure that there are enough credits in smsgh account to send out confirmation sms
+        smsgh_balance = smsgh.check_balance()
 
-    # If any transaction is not PAID, fail the whole request
-    for t in transactions:
-        if t.state != Transaction.PAID:
-            return Response({'detail': 'Wrong state', 'id': t.id, 'state': t.state},
-                            status=status.HTTP_403_FORBIDDEN)
-
-    # USD-BTC CONVERSION
-    # Get latest exchange rate
-    rate = get_blockchain_exchange_rate()
-    if rate is None:
-        return Response({'detail': 'Failed to retrieve exchange rate'},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # Update amount_btc based on latest exchange rate
-    for t in transactions:
-        t.update_btc(rate)
-
-    # Combine transactions with same wallet address
-    combined_transactions = consolidate_transactions(transactions)
-
-    # REQUEST
-    # Prepare request and send
-    recipients = utils.create_recipients_string(combined_transactions)
-
-    request_error = False
-    r = None
-    try:
-        r = requests.get(BLOCKCHAIN_API_SENDMANY, params={
-            'password': password1,
-            'second_password': password2,
-            'recipients': recipients,
-            'note': BITCOIN_NOTE
-        })
-        if r.json().get('error'):
-            request_error = True
-        else:
-            transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
-
-            combined_sms_confirm, combined_sms_topup = \
-                consolidate_notification_sms(transactions)
-
-            # send out confirmation SMS
-            for number, reference_numbers in combined_sms_confirm.iteritems():
-                response_status, message_id = smsgh.send_message_confirm(
-                    mobile_number=number,
-                    reference_numbers=reference_numbers
+        if smsgh_balance is not None:
+            if smsgh_balance < len(transactions):
+                return Response(
+                    {'detail': 'Not enough credit on SMSGH account'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
-                for t in transactions.filter(notification_phone_number=number):
+        # USD-BTC CONVERSION
+        # Get latest exchange rate
+        rate = get_blockchain_exchange_rate()
+        if rate is None:
+            return Response({'detail': 'Failed to retrieve exchange rate'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-                    t.update_after_sms_notification(
-                        response_status, message_id
-                    )
+        # Update amount_btc based on latest exchange rate
+        for t in transactions:
+            t.update_btc(rate)
 
-            # top up account
-            if NOXXI_TOP_UP_ENABLED:
-                for number, amount in combined_sms_topup.iteritems():
-                    topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
+        # Combine transactions with same wallet address
+        combined_transactions = consolidate_transactions(transactions)
 
-                    if topup > 0.20:
-                        noxxi.direct_top_up(
-                            mobile_number=number,
-                            amount=topup
-                        )
+        # REQUEST
+        # Prepare request and send
+        recipients = utils.create_recipients_string(combined_transactions)
 
-                        smsgh.send_message_topup(
-                            mobile_number=number,
-                            topup=topup
-                        )
+        r = None
+        btc_transfer_request_error = False
+        try:
+            r = requests.get(BLOCKCHAIN_API_SENDMANY, params={
+                'password': password1,
+                'second_password': password2,
+                'recipients': recipients,
+                'note': BITCOIN_NOTE
+            })
+            if r.json().get('error'):
+                btc_transfer_request_error = True
+            else:
+                transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
+        except requests.RequestException:
+            btc_transfer_request_error = True
 
-            return Response({'status': 'success'})
-    except requests.RequestException:
-        request_error = True
-
-    if request_error:
+    if btc_transfer_request_error:
         if r:
             return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         else:
             return Response("{'error': 'Error making btc transfer request to blockchain'}",
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        combined_sms_confirm, combined_sms_topup = \
+            consolidate_notification_sms(transactions)
+
+        # send out confirmation SMS
+        for number, reference_numbers in combined_sms_confirm.iteritems():
+            response_status, message_id = smsgh.send_message_confirm(
+                mobile_number=number,
+                reference_numbers=reference_numbers
+            )
+
+            for t in transactions.filter(notification_phone_number=number):
+                t.update_after_sms_notification(
+                    response_status, message_id
+                )
+
+        # top up account
+        if NOXXI_TOP_UP_ENABLED:
+            for number, amount in combined_sms_topup.iteritems():
+                topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
+
+                if topup > 0.20:
+                    noxxi.direct_top_up(
+                        mobile_number=number,
+                        amount=topup
+                    )
+
+                    smsgh.send_message_topup(
+                        mobile_number=number,
+                        topup=topup
+                    )
+
+        return Response({'status': 'success'})
 
 
 # Helper methods
