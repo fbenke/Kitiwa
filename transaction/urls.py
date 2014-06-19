@@ -23,18 +23,19 @@ pricing_detail = views.PricingViewSet.as_view({
 
 urlpatterns = patterns(
     '',
+
+    # transactions
     url(r'^transaction/$', transaction_list, name='transaction'),
-    url(r'^transaction/(?P<pk>[0-9]+)/$', transaction_detail,
-        name='transaction-detail'),
+    url(r'^transaction/(?P<pk>[0-9]+)/$', transaction_detail, name='transaction-detail'),
+    url(r'^transaction/accept/$', 'transaction.views.accept', name='transaction-accept'),
+    url(r'^transaction/opr_charge/$', views.TransactionOprCharge.as_view(), name='transaction-charge'),
+
+    # pricing
     url(r'^pricing/$', pricing, name='pricing'),
-    url(r'^pricing/(?P<pk>[0-9]+)/$', pricing_detail,
-        name='pricing-detail'),
-    url(r'^pricing/current/$', views.PricingCurrent.as_view(),
-        name='transaction-charge'),
-    url(r'^transaction/accept/$', 'transaction.views.accept',
-        name='transaction-accept'),
-    url(r'^transaction/opr_charge/$', views.TransactionOprCharge.as_view(),
-        name='transaction-charge'),
+    url(r'^pricing/(?P<pk>[0-9]+)/$', pricing_detail, name='pricing-detail'),
+    url(r'^pricing/current/$', views.PricingCurrent.as_view(), name='pricing-current'),
+    url(r'^pricing/ghs/$', views.PricingGHS.as_view(), name='pricing-ghs'),
+
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -93,6 +93,24 @@ class TransactionViewSet(viewsets.ModelViewSet):
             mpower_invoice_token=invoice_token)
 
 
+class PricingGHS(APIView):
+
+    def get(self, request, format=None):
+        try:
+            amount_usd = float(request.QUERY_PARAMS.get('amount_usd'))
+            if (amount_usd != round(amount_usd, 2)):
+                return Response(
+                    {'detail': '\'amount_usd\' may not have more than 2 decimal places'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            unit_price = Pricing.get_current_pricing().get_unit_price()
+            amount_ghs = round(amount_usd * unit_price, 1)
+            return Response({'amount_ghs': amount_ghs})
+        except TypeError:
+            return Response({'detail': 'No valid parameter for \'amount_usd\''},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
 class TransactionOprCharge(APIView):
 
     def put(self, request, format=None):
@@ -218,6 +236,7 @@ def accept(request):
         # Prepare request and send
         recipients = utils.create_recipients_string(combined_transactions)
 
+
         r = None
         btc_transfer_request_error = False
         try:
@@ -262,15 +281,15 @@ def accept(request):
                 topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
 
                 if topup > 0.20:
-                    noxxi.direct_top_up(
+                    success = noxxi.direct_top_up(
                         mobile_number=number,
                         amount=topup
                     )
-
-                    smsgh.send_message_topup(
-                        mobile_number=number,
-                        topup=topup
-                    )
+                    if success:
+                        smsgh.send_message_topup(
+                            mobile_number=number,
+                            topup=topup
+                        )
 
         return Response({'status': 'success'})
 

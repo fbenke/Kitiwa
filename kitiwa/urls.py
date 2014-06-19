@@ -27,3 +27,8 @@ urlpatterns = patterns(
     url(r'^api-auth/', include('rest_framework.urls',
                                namespace='rest_framework')),
 )
+
+handler404 = 'kitiwa.views.page_not_found'
+handler500 = 'kitiwa.views.custom_error'
+handler403 = 'kitiwa.views.permission_denied'
+handler400 = 'kitiwa.views.bad_request'

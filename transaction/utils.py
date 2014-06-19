@@ -30,7 +30,7 @@ def b58encode(v):
 
     long_value = 0L
     for (i, c) in enumerate(v[::-1]):
-        long_value += (256**i) * ord(c)
+        long_value += (256 ** i) * ord(c)
 
     result = ''
     while long_value >= __b58base:
@@ -48,7 +48,7 @@ def b58encode(v):
         else:
             break
 
-    return (__b58chars[0]*n_pad) + result
+    return (__b58chars[0] * n_pad) + result
 
 
 def b58decode(v, length):
@@ -56,7 +56,7 @@ def b58decode(v, length):
     """
     long_value = 0L
     for (i, c) in enumerate(v[::-1]):
-        long_value += __b58chars.find(c) * (__b58base**i)
+        long_value += __b58chars.find(c) * (__b58base ** i)
 
     result = ''
     while long_value >= 256:
@@ -72,7 +72,7 @@ def b58decode(v, length):
         else:
             break
 
-    result = chr(0)*n_pad + result
+    result = chr(0) * n_pad + result
     if length is not None and len(result) != length:
         return None
 
@@ -84,7 +84,7 @@ def b36encode(number, alphabet='0123456789abcdefghijklmnopqrstuvwxyz'):
     if not isinstance(number, (int, long)):
         long_value = 0L
         for (i, c) in enumerate(number[::-1]):
-            long_value += (256**i) * ord(c)
+            long_value += (256 ** i) * ord(c)
         number = long_value
 
     base36 = '' if number != 0 else '0'
@@ -105,7 +105,7 @@ def b36decode(number):
 
 
 def get_bcaddress_version(str_address):
-    """ Returns None if strAddress is invalid.    Otherwise returns integer version of address. """
+    """ Returns None if strAddress is invalid. Otherwise returns integer version of address. """
     addr = b58decode(str_address, 25)
     if addr is None:
         return None

@@ -5,6 +5,8 @@ from rest_framework import serializers
 from transaction.models import Transaction, Pricing
 from transaction.utils import is_valid_btc_address
 
+from kitiwa.settings import MAXIMUM_AMOUNT_BTC_BUYING
+
 
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,9 +49,13 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_amount_usd(self, attrs, source):
-        if attrs[source] < 1:
+        if attrs[source] < 1 or attrs[source] > MAXIMUM_AMOUNT_BTC_BUYING:
             raise serializers.ValidationError(
-                'amount must be at least 1 USD'
+                'amount must be between 1 and {} USD'.format(MAXIMUM_AMOUNT_BTC_BUYING)
+            )
+        if round(attrs[source], 2) != attrs[source]:
+            raise serializers.ValidationError(
+                'amount may not have more than two decimal places'
             )
         return attrs
 

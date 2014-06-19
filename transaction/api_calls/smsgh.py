@@ -48,7 +48,7 @@ def _send_message(mobile_number, content):
     }
 
     payload = {
-        'From': 'kitiwa',
+        'From': 'Kitiwa',
         'To': mobile_number,
         'Content': content,
         'RegisteredDelivery': 'true'
@@ -68,10 +68,9 @@ def _send_message(mobile_number, content):
     try:
         message_id = decoded_response['MessageId']
     except KeyError:
-        message = 'SMSGH: Failed to send message to {}. '\
+        message = 'ERROR - SMSGH: Failed to send message to {}. '\
                   'Status: {}. Message: {}.'
-        message.format(mobile_number, response_status, content)
-        log_error(message)
+        log_error(message.format(mobile_number, response_status, content))
         message_id = ''
 
     return response_status, message_id
@@ -93,7 +92,7 @@ def check_balance():
     try:
         balance = float(re.search(r'\d+.\d+', response.text).group(0))
     except IndexError:
-        log_error('SMSGH: Failed to check balance.')
+        log_error('ERROR - SMSGH: Failed to check balance.')
         return
 
     return balance

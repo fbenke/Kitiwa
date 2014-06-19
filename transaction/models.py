@@ -47,6 +47,9 @@ class Pricing(models.Model):
         except ObjectDoesNotExist:
             pass
 
+    def get_unit_price(self):
+        return math.floor(self.ghs_usd * (1 + self.markup) * 100) / 100
+
 
 class Transaction(models.Model):
 
@@ -214,8 +217,8 @@ class Transaction(models.Model):
 
     def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()
-        # floor to 2 decimal places
-        self.amount_ghs = self.amount_usd * (math.floor(self.pricing.ghs_usd * (1 + self.pricing.markup) * 100) / 100)
+        unit_price = self.pricing.get_unit_price()
+        self.amount_ghs = round(self.amount_usd * unit_price, 1)
 
     def generate_reference_number(self):
         self.reference_number = str(random.randint(10000, 999999))
