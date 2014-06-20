@@ -76,10 +76,23 @@ class TransactionOprChargeSerializer(serializers.ModelSerializer):
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing
-        fields = ('markup', 'ghs_usd', 'start', 'end',)
+        fields = ('markup_cat_1', 'markup_cat_2', 'markup_cat_3',
+                  'markup_cat_4', 'ghs_usd', 'start', 'end',)
         read_only_fields = ('start', 'end',)
 
-    def validate_markup(self, attrs, source):
+    def validate_markup_cat_1(self, attrs, source):
+        return self._validate_markup(attrs, source)
+
+    def validate_markup_cat_2(self, attrs, source):
+        return self._validate_markup(attrs, source)
+
+    def validate_markup_cat_3(self, attrs, source):
+        return self._validate_markup(attrs, source)
+
+    def validate_markup_cat_4(self, attrs, source):
+        return self._validate_markup(attrs, source)
+
+    def _validate_markup(self, attrs, source):
         if not (0.0 <= attrs[source] <= 1.0):
             raise serializers.ValidationError(
                 'markup has to be a value between 0 and 1')

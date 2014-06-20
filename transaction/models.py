@@ -22,17 +22,38 @@ class Pricing(models.Model):
         help_text='Time at which pricing ended. If null, it represents the current pricing structure. ' +
                   'Only one row in this table can have a null value for this column.'
     )
-    markup = models.FloatField(
-        'Markup',
-        help_text='Percentage to be added over exchange rate. Value between 0 and 1.'
+
+    markup_cat_1 = models.FloatField(
+        'Markup (1-10 USD)',
+        help_text='Percentage to be added over exchange rate for transactions worth between 1 and 10 USD. ' +
+                  'Value between 0 and 1.'
     )
+
+    markup_cat_2 = models.FloatField(
+        'Markup (10-50 USD)',
+        help_text='Percentage to be added over exchange rate for transactions worth between 10 and 50 USD. ' +
+                  'Value between 0 and 1.'
+    )
+
+    markup_cat_3 = models.FloatField(
+        'Markup (50-100 USD)',
+        help_text='Percentage to be added over exchange rate for transactions worth between 50 and 100 USD. ' +
+                  'Value between 0 and 1.'
+    )
+
+    markup_cat_4 = models.FloatField(
+        'Markup (starting from 100 USD)',
+        help_text='Percentage to be added over exchange rate for transactions worth 100 USD or more. ' +
+                  'Value between 0 and 1.'
+    )
+
     ghs_usd = models.FloatField(
         'GHS/USD Exchange Rate',
         help_text='Amount of GHS you get for 1 USD'
     )
 
     def __unicode__(self):
-        return '{markup} %'.format(markup=self.markup)
+        return '{markup} %'.format(markup=self.markup_cat_1)
 
     @staticmethod
     def get_current_pricing():
@@ -47,8 +68,16 @@ class Pricing(models.Model):
         except ObjectDoesNotExist:
             pass
 
-    def get_unit_price(self):
-        return math.floor(self.ghs_usd * (1 + self.markup) * 100) / 100
+    def get_unit_price(self, amount_usd):
+        if 1 <= amount_usd < 5:
+            markup = self.markup_cat_1
+        elif 5 <= amount_usd < 100:
+            markup = self.markup_cat_2
+        elif 100 <= amount_usd < 500:
+            markup = self.markup_cat_3
+        else:
+            markup = self.markup_cat_4
+        return math.floor(self.ghs_usd * (1 + markup) * 100) / 100
 
 
 class Transaction(models.Model):
@@ -217,7 +246,7 @@ class Transaction(models.Model):
 
     def calculate_ghs_price(self):
         self.pricing = Pricing.get_current_pricing()
-        unit_price = self.pricing.get_unit_price()
+        unit_price = self.pricing.get_unit_price(self.amount_usd)
         self.amount_ghs = round(self.amount_usd * unit_price, 1)
 
     def generate_reference_number(self):

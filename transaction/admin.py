@@ -6,6 +6,7 @@ from transaction.models import Pricing, Transaction
 class PricingAdmin(admin.ModelAdmin):
     fields = ('id', 'start', 'end', 'markup', 'ghs_usd', )
     readonly_fields = ('id', 'start', )
+    list_display = ('start', 'end', 'ghs_usd', 'markup_cat_1', 'markup_cat_2', 'markup_cat_3', 'markup_cat_4')
 
 
 class TransactionAdmin(admin.ModelAdmin):
