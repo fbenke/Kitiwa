@@ -76,7 +76,8 @@ class TransactionOprChargeSerializer(serializers.ModelSerializer):
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing
-        fields = ('markup_cat_1', 'markup_cat_2', 'markup_cat_3',
+        fields = ('markup_cat_1', 'markup_cat_1_upper', 'markup_cat_2',
+                  'markup_cat_2_upper', 'markup_cat_3', 'markup_cat_3_upper',
                   'markup_cat_4', 'ghs_usd', 'start', 'end',)
         read_only_fields = ('start', 'end',)
 

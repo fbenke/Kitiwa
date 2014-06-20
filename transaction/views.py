@@ -71,9 +71,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(state=state)
         return queryset
 
-    def pre_save(self, obj):
-        obj.calculate_ghs_price()
-        obj.generate_reference_number()
+    # def pre_save(self, obj):
+    #     obj.calculate_ghs_price()
+    #     obj.generate_reference_number()
 
     def post_save(self, obj, created=False):
 
@@ -113,6 +113,8 @@ class TransactionOprCharge(APIView):
             )
         if serializer.is_valid():
 
+            print transaction.mpower_opr_token
+            print serializer.data['mpower_confirm_token']
             serializer.save()
 
             response_code, response_text = mpower.opr_charge_action(
@@ -176,8 +178,7 @@ class PricingGHS(APIView):
                     {'detail': '\'amount_usd\' may not have more than 2 decimal places'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd)
-            amount_ghs = round(amount_usd * unit_price, 1)
+            amount_ghs = Transaction.calculate_ghs_price(amount_usd)
             return Response({'amount_ghs': amount_ghs})
         except TypeError:
             return Response({'detail': 'No valid parameter for \'amount_usd\''},

@@ -4,9 +4,16 @@ from transaction.models import Pricing, Transaction
 
 
 class PricingAdmin(admin.ModelAdmin):
-    fields = ('id', 'start', 'end', 'markup', 'ghs_usd', )
+    fields = (
+        'id', 'start', 'end', 'markup_cat_1', 'markup_cat_1_upper', 'markup_cat_2',
+        'markup_cat_2_upper', 'markup_cat_3', 'markup_cat_3_upper', 'markup_cat_4',
+        'ghs_usd',
+    )
     readonly_fields = ('id', 'start', )
-    list_display = ('start', 'end', 'ghs_usd', 'markup_cat_1', 'markup_cat_2', 'markup_cat_3', 'markup_cat_4')
+    list_display = (
+        'start', 'end', 'ghs_usd', 'markup_cat_1', 'markup_cat_2',
+        'markup_cat_3', 'markup_cat_4'
+    )
 
 
 class TransactionAdmin(admin.ModelAdmin):

@@ -24,27 +24,38 @@ class Pricing(models.Model):
     )
 
     markup_cat_1 = models.FloatField(
-        'Markup (1-10 USD)',
-        help_text='Percentage to be added over exchange rate for transactions worth between 1 and 10 USD. ' +
-                  'Value between 0 and 1.'
+        'Markup Segment 1',
+        help_text='Percentage to be added over exchange rate for markup segment 1. Value between 0 and 1.'
     )
 
     markup_cat_2 = models.FloatField(
-        'Markup (10-50 USD)',
-        help_text='Percentage to be added over exchange rate for transactions worth between 10 and 50 USD. ' +
-                  'Value between 0 and 1.'
+        'Markup Segment 2',
+        help_text='Percentage to be added over exchange rate for markup segment 2. Value between 0 and 1.'
     )
 
     markup_cat_3 = models.FloatField(
-        'Markup (50-100 USD)',
-        help_text='Percentage to be added over exchange rate for transactions worth between 50 and 100 USD. ' +
-                  'Value between 0 and 1.'
+        'Markup Segment 3',
+        help_text='Percentage to be added over exchange rate for markup segment 3. Value between 0 and 1.'
     )
 
     markup_cat_4 = models.FloatField(
-        'Markup (starting from 100 USD)',
-        help_text='Percentage to be added over exchange rate for transactions worth 100 USD or more. ' +
-                  'Value between 0 and 1.'
+        'Markup Segment 4',
+        help_text='Percentage to be added over exchange rate for markup segment 4. Value between 0 and 1.'
+    )
+
+    markup_cat_1_upper = models.IntegerField(
+        'Upper bound of markup segment 1',
+        help_text='Exclusive upper bound of markup segment 1 as value in USD.'
+    )
+
+    markup_cat_2_upper = models.IntegerField(
+        'Upper bound of markup segment 2',
+        help_text='Exclusive upper bound of markup segment 2 as value in USD.'
+    )
+
+    markup_cat_3_upper = models.IntegerField(
+        'Upper bound of markup segment 3',
+        help_text='Exclusive upper bound of markup segment 3 as value in USD.'
     )
 
     ghs_usd = models.FloatField(
@@ -53,7 +64,7 @@ class Pricing(models.Model):
     )
 
     def __unicode__(self):
-        return '{markup} %'.format(markup=self.markup_cat_1)
+        return self.id
 
     @staticmethod
     def get_current_pricing():
@@ -69,15 +80,15 @@ class Pricing(models.Model):
             pass
 
     def get_unit_price(self, amount_usd):
-        if 1 <= amount_usd < 5:
+        if 1 <= amount_usd < self.markup_cat_1_upper:
             markup = self.markup_cat_1
-        elif 5 <= amount_usd < 100:
+        elif self.markup_cat_1_upper <= amount_usd < self.markup_cat_2_upper:
             markup = self.markup_cat_2
-        elif 100 <= amount_usd < 500:
+        elif self.markup_cat_2_upper <= amount_usd < self.markup_cat_3_upper:
             markup = self.markup_cat_3
         else:
             markup = self.markup_cat_4
-        return math.floor(self.ghs_usd * (1 + markup) * 100) / 100
+        return math.floor(self.ghs_usd * (1 + markup) * 10) / 10
 
 
 class Transaction(models.Model):
@@ -244,10 +255,11 @@ class Transaction(models.Model):
         help_text='Identifier referring to confirmation sms sent by SMSGH'
     )
 
-    def calculate_ghs_price(self):
-        self.pricing = Pricing.get_current_pricing()
-        unit_price = self.pricing.get_unit_price(self.amount_usd)
-        self.amount_ghs = round(self.amount_usd * unit_price, 1)
+    @staticmethod
+    def calculate_ghs_price(amount_usd):
+        unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd)
+        amount_ghs = math.floor(amount_usd * unit_price * 10) / 10
+        return amount_ghs
 
     def generate_reference_number(self):
         self.reference_number = str(random.randint(10000, 999999))
@@ -255,7 +267,8 @@ class Transaction(models.Model):
     def save(self, *args, **kwargs):
         if is_valid_btc_address(self.btc_wallet_address):
             if not self.pk:
-                self.calculate_ghs_price()
+                self.pricing = Pricing.get_current_pricing()
+                self.amount_ghs = Transaction.calculate_ghs_price(self.amount_usd)
                 self.generate_reference_number()
             else:
                 original = Transaction.objects.get(pk=self.pk)
