@@ -121,3 +121,7 @@ def get_bcaddress_version(str_address):
 def log_error(message):
     logger = logging.getLogger('django')
     logger.error(message)
+
+
+class AcceptException(Exception):
+    pass
