@@ -71,10 +71,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(state=state)
         return queryset
 
-    # def pre_save(self, obj):
-    #     obj.calculate_ghs_price()
-    #     obj.generate_reference_number()
-
     def post_save(self, obj, created=False):
 
         phone_number = obj.notification_phone_number
@@ -169,15 +165,20 @@ class PricingCurrent(RetrieveAPIView):
 class PricingGHS(APIView):
     def get(self, request, format=None):
         try:
-            amount_usd = float(request.QUERY_PARAMS.get('amount_usd'))
-            if (amount_usd != round(amount_usd, 2)):
-                return Response(
-                    {'detail': '\'amount_usd\' may not have more than 2 decimal places'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            amount_ghs = Transaction.calculate_ghs_price(amount_usd)
-            return Response({'amount_ghs': amount_ghs})
-        except TypeError:
+            usd_list = request.QUERY_PARAMS.get('amount_usd')
+            usd_list = usd_list.split(',')
+            ghs_conversions = {}
+            for amount_usd in usd_list:
+                amount_usd = float(amount_usd)
+                if amount_usd != round(amount_usd, 2):
+                    return Response(
+                        {'detail': '\'amount_usd\' may not have more than 2 decimal places'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                ghs_conversions[amount_usd] = Transaction.calculate_ghs_price(amount_usd)
+            print ghs_conversions
+            return Response(ghs_conversions)
+        except (AttributeError, ValueError):
             return Response({'detail': 'No valid parameter for \'amount_usd\''},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -210,7 +211,7 @@ def accept(request):
             for t in transactions:
                 if t.state != Transaction.PAID:
                     raise AcceptException({'detail': 'Wrong state', 'id': t.id, 'state': t.state},
-                                    status.HTTP_403_FORBIDDEN)
+                                          status.HTTP_403_FORBIDDEN)
 
             # Make sure that there are enough credits in smsgh account to send out confirmation sms
             smsgh_balance = smsgh.check_balance()
@@ -218,14 +219,14 @@ def accept(request):
             if smsgh_balance is not None:
                 if smsgh_balance < len(transactions):
                     raise AcceptException({'detail': 'Not enough credit on SMSGH account'},
-                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
+                                          status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             # USD-BTC CONVERSION
             # Get latest exchange rate
             rate = get_blockchain_exchange_rate()
             if rate is None:
                 raise AcceptException({'detail': 'Failed to retrieve exchange rate'},
-                                    status.HTTP_500_INTERNAL_SERVER_ERROR)
+                                      status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             # Update amount_btc based on latest exchange rate
             for t in transactions:
