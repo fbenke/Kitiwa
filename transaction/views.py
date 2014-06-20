@@ -112,9 +112,6 @@ class TransactionOprCharge(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         if serializer.is_valid():
-
-            print transaction.mpower_opr_token
-            print serializer.data['mpower_confirm_token']
             serializer.save()
 
             response_code, response_text = mpower.opr_charge_action(
