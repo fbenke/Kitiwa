@@ -81,6 +81,15 @@ class PricingSerializer(serializers.ModelSerializer):
                   'markup_cat_4', 'ghs_usd', 'start', 'end',)
         read_only_fields = ('start', 'end',)
 
+    def validate(self, attrs):
+        if not(
+                attrs['markup_cat_1_upper'] < attrs['markup_cat_2_upper']
+                < attrs['markup_cat_3_upper']
+        ):
+            raise serializers.ValidationError(
+                'each upper bound must be greater than the previous one')
+        return attrs
+
     def validate_markup_cat_1(self, attrs, source):
         return self._validate_markup(attrs, source)
 
