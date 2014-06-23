@@ -233,7 +233,7 @@ def accept(request):
                 t.update_btc(rate)
 
             # Combine transactions with same wallet address
-            combined_transactions = consolidate_transactions(transactions)
+            combined_transactions = utils.consolidate_transactions(transactions)
 
             # REQUEST
             # Prepare request and send
@@ -251,7 +251,7 @@ def accept(request):
                 else:
                     transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
                     combined_sms_confirm, combined_sms_topup = \
-                        consolidate_notification_sms(transactions)
+                        utils.consolidate_notification_sms(transactions)
 
                     # send out confirmation SMS
                     for number, reference_numbers in combined_sms_confirm.iteritems():
@@ -295,31 +295,3 @@ def accept(request):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({'status': 'success'})
-
-
-# Helper methods
-def consolidate_transactions(transactions):
-    combined_transactions = {}
-    for t in transactions:
-        try:
-            combined_transactions[t.btc_wallet_address] += t.amount_btc
-        except KeyError:
-            combined_transactions[t.btc_wallet_address] = t.amount_btc
-    return combined_transactions
-
-
-def consolidate_notification_sms(transactions):
-    combined_sms_confirm = {}
-    combined_sms_topup = {}
-    for t in transactions:
-        try:
-            combined_sms_confirm[t.notification_phone_number].append(t.reference_number)
-        except KeyError:
-            combined_sms_confirm[t.notification_phone_number] = [t.reference_number]
-
-        try:
-            combined_sms_topup[t.notification_phone_number] += t.amount_ghs
-        except (TypeError, KeyError):
-            combined_sms_topup[t.notification_phone_number] = t.amount_ghs
-
-    return combined_sms_confirm, combined_sms_topup

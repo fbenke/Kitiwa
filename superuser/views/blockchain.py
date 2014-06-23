@@ -18,7 +18,7 @@ def get_balance(request):
     else:
         rate = get_blockchain_exchange_rate()
         if rate is not None:
-            btc = decimal.Decimal(r.json().get('balance'))/s.ONE_SATOSHI
+            btc = decimal.Decimal(r.json().get('balance')) / s.ONE_SATOSHI
             usd = btc * decimal.Decimal(rate)
             return Response({'btc': btc, 'usd': '{0:.2f}'.format(usd), 'rate': rate})
 
@@ -40,8 +40,11 @@ def get_blockchain_exchange_rate():
             try:
                 return get_rate_call.json().get('USD').get('buy')
             except AttributeError:
+                # TODO: add logging: e.g. log_error('ERROR - BLOCKCHAIN: <explanation>')
                 return None
         else:
+            # TODO: add logging: e.g. log_error('ERROR - BLOCKCHAIN: <explanation>')
             return None
     except requests.RequestException:
+        # TODO: add logging: e.g. log_error('ERROR - BLOCKCHAIN: <explanation>')
         return None

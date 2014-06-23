@@ -10,6 +10,33 @@ def create_recipients_string(combined_transactions):
     return recipients[:-1] + '}'
 
 
+def consolidate_transactions(transactions):
+    combined_transactions = {}
+    for t in transactions:
+        try:
+            combined_transactions[t.btc_wallet_address] += t.amount_btc
+        except KeyError:
+            combined_transactions[t.btc_wallet_address] = t.amount_btc
+    return combined_transactions
+
+
+def consolidate_notification_sms(transactions):
+    combined_sms_confirm = {}
+    combined_sms_topup = {}
+    for t in transactions:
+        try:
+            combined_sms_confirm[t.notification_phone_number].append(t.reference_number)
+        except KeyError:
+            combined_sms_confirm[t.notification_phone_number] = [t.reference_number]
+
+        try:
+            combined_sms_topup[t.notification_phone_number] += t.amount_ghs
+        except (TypeError, KeyError):
+            combined_sms_topup[t.notification_phone_number] = t.amount_ghs
+
+    return combined_sms_confirm, combined_sms_topup
+
+
 def is_valid_btc_address(value):
     value = value.strip()
     if re.match(r"[a-zA-Z1-9]{27,35}$", value) is None:
