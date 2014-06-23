@@ -27,12 +27,12 @@ urlpatterns = patterns(
         RedirectView.as_view(url=STATIC_URL + 'img/favicon.ico')
     ),
     url(
-        r'^api/v1/superuser/',
-        include('superuser.urls', namespace='superuser')
+        r'^api/v1/',
+        include('transaction.urls', namespace='trans')
     ),
     url(
-        r'^api/v1/',
-        include('transaction.urls', namespace='transaction')
+        r'^api/v1/superuser/',
+        include('superuser.urls', namespace='superuser')
     ),
     url(
         r'^admin/',

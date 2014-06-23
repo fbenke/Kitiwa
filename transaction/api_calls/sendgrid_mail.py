@@ -6,7 +6,7 @@ from kitiwa.settings import NOTIFY_ADMIN_PAID,\
 from kitiwa.settings import SENDGRID_USERNAME,\
     SENDGRID_PASSWORD, SENDGRID_EMAIL_FROM
 
-from kitiwa.settings import ENV, ENV_NAMES
+from kitiwa.settings import ENV, ENV_SITE_MAPPING, SITE_ADMIN
 
 from django.contrib.auth.models import User
 from transaction.models import Transaction
@@ -42,6 +42,6 @@ def notify_admins_paid():
             int(NOTIFY_ADMIN_TRANSACTION_THRESHOLD):
         return
 
-    message = NOTIFY_ADMIN_EMAIL_BODY_PAID.format(ENV_NAMES[ENV])
+    message = NOTIFY_ADMIN_EMAIL_BODY_PAID.format(ENV_SITE_MAPPING[ENV][SITE_ADMIN])
 
     send_mail_to_admins(NOTIFY_ADMIN_EMAIL_SUBJECT_PAID, message)

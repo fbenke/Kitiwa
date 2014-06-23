@@ -4,7 +4,6 @@ import dj_database_url
 
 
 # Helpers
-
 BASE_DIR = lambda *x: os.path.join(os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.path.pardir)).replace('\\', '/'), *x)
 
@@ -19,10 +18,34 @@ ALLOWED_HOSTS = ['*']
 
 ENV = os.environ.get('ENV')
 
-ENV_NAMES = {
-    'dev': 'admin-dev.kitiwa.com',
-    'vip': 'admin-vip.kitiwa.com',
-    'prod': 'admin.kitiwa.com'
+# ENV names
+ENV_LOCAL = 'local'
+ENV_DEV = 'dev'
+ENV_VIP = 'vip'
+ENV_PROD = 'prod'
+
+# Site types in Env
+SITE_API = 0
+SITE_ADMIN = 1
+SITE_USER = 2
+
+# ENV to URL mapping
+ENV_SITE_MAPPING = {
+    ENV_DEV: {
+        SITE_API: 'api-dev.kitiwa.com',
+        SITE_ADMIN: 'admin-dev.kitiwa.com',
+        SITE_USER: 'dev.kitiwa.com'
+    },
+    ENV_VIP: {
+        SITE_API: 'api-vip.kitiwa.com',
+        SITE_ADMIN: 'admin-vip.kitiwa.com',
+        SITE_USER: 'vip.kitiwa.com'
+    },
+    ENV_PROD: {
+        SITE_API: 'api.kitiwa.com',
+        SITE_ADMIN: 'admin.kitiwa.com',
+        SITE_USER: 'kitiwa.com'
+    }
 }
 
 # Application definition
@@ -51,7 +74,7 @@ LOCAL_APPS = (
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-if ENV != 'dev':
+if ENV != ENV_LOCAL:
     PRODUCTION_MIDDLEWARE = ('sslify.middleware.SSLifyMiddleware',)
 else:
     PRODUCTION_MIDDLEWARE = ()
@@ -135,12 +158,13 @@ REST_FRAMEWORK = {
     }
 }
 
-
-'''
-TODO: This should be changed when the site goes live. Only the
-domains of the angular apps should be allowed using CORS_ORIGIN_WHITELIST
-'''
-CORS_ORIGIN_ALLOW_ALL = True
+if ENV == ENV_LOCAL:
+    CORS_ORIGIN_ALLOW_ALL = True
+else:
+    CORS_ORIGIN_WHITELIST = (
+        ENV_SITE_MAPPING[ENV][SITE_ADMIN],
+        ENV_SITE_MAPPING[ENV][SITE_USER]
+    )
 
 # Proxies
 proxies = {
@@ -216,13 +240,12 @@ NOTIFY_ADMIN_EMAIL_SUBJECT_PAID = 'Kitiwa: There are transactions waiting to be 
 NOTIFY_ADMIN_EMAIL_BODY_PAID = \
     '''
     Dear Admin,
-    there are transactions on {} waiting to be processed.
+    There are transactions on {} waiting to be processed.
 
     Sincerely,
-    the SendGridBot
+    The SendGridBot
     '''
 NOTIFY_ADMIN_TRANSACTION_THRESHOLD = os.environ.get('NOTIFY_ADMIN_TRANSACTION_THRESHOLD')
-
 NOTIFY_USER_CONF_REF_TEXT_SINGLE = 'Your bitcoin order #{} has been processed!'
 NOTIFY_USER_CONF_REF_TEXT_MULTIPLE = 'The following bitcoin orders have been processed: #{}!'
 NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm that you\'ve received it on our Facebook page: fb.com/kitiwaBTC'
@@ -231,7 +254,6 @@ NOTIFY_USER_TOPUP = 'Hello, you\'ve been rewarded {} cedis of phone credit for u
 
 # Noxxi Settings
 KNOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('NOXXI_TOP_UP_ENABLED', '1')))
-
 KNOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
 KNOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
 KNOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
