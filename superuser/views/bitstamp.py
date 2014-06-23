@@ -26,10 +26,13 @@ def get_bitstamp_exchange_rate():
             try:
                 return get_rate_call.json().get('ask')
             except AttributeError:
+                # TODO: add logging: e.g. log_error('ERROR - BITSTAMP: <explanation>')
                 return None
         else:
+            # TODO: add logging: e.g. log_error('ERROR - BITSTAMP: <explanation>')
             return None
     except requests.RequestException:
+        # TODO: add logging: e.g. log_error('ERROR - BITSTAMP: <explanation>') 
         return None
 
 
