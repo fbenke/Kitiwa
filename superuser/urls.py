@@ -5,23 +5,23 @@ from superuser.views import auth, blockchain, bitstamp, forex
 urlpatterns = patterns(
     '',
     # Auth
-    url(r'^api/v1/login/$', auth.Login.as_view()),
-    url(r'^api/v1/logout/$', auth.logout),
+    url(r'^login/$', auth.Login.as_view()),
+    url(r'^logout/$', auth.logout),
 
     # Blockchain
-    url(r'^api/v1/blockchain/balance/$', blockchain.get_balance),
-    url(r'^api/v1/blockchain/rate/$', blockchain.get_rate),
+    url(r'^blockchain/balance/$', blockchain.get_balance),
+    url(r'^blockchain/rate/$', blockchain.get_rate),
 
     # Bitstamp
-    url(r'^api/v1/bitstamp/rate/$', bitstamp.get_rate),
-    url(r'^api/v1/bitstamp/data/$', bitstamp.get_request_data),
-    url(r'^api/v1/bitstamp/balance/$', bitstamp.Balance.as_view()),
-    url(r'^api/v1/bitstamp/orders/$', bitstamp.Orders.as_view()),
-    url(r'^api/v1/bitstamp/order/$', bitstamp.OrderBtc.as_view()),
-    url(r'^api/v1/bitstamp/order/cancel/$', bitstamp.CancelOrder.as_view()),
-    url(r'^api/v1/bitstamp/withdraw/$', bitstamp.Withdraw.as_view()),
-    url(r'^api/v1/bitstamp/transactions/$', bitstamp.Transactions.as_view()),
+    url(r'^bitstamp/rate/$', bitstamp.get_rate),
+    url(r'^bitstamp/data/$', bitstamp.get_request_data),
+    url(r'^bitstamp/balance/$', bitstamp.Balance.as_view()),
+    url(r'^bitstamp/orders/$', bitstamp.Orders.as_view()),
+    url(r'^bitstamp/order/$', bitstamp.OrderBtc.as_view()),
+    url(r'^bitstamp/order/cancel/$', bitstamp.CancelOrder.as_view()),
+    url(r'^bitstamp/withdraw/$', bitstamp.Withdraw.as_view()),
+    url(r'^bitstamp/transactions/$', bitstamp.Transactions.as_view()),
 
     # Forex
-    url(r'^api/v1/forex/usd/ghs/$', forex.get_usd_ghs),
+    url(r'^forex/usd/ghs/$', forex.get_usd_ghs),
 )
