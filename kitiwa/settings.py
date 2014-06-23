@@ -22,7 +22,8 @@ ENV = os.environ.get('ENV')
 ENV_NAMES = {
     'dev': 'admin-dev.kitiwa.com',
     'vip': 'admin-vip.kitiwa.com',
-    'prod': 'admin.kitiwa.com'
+    'prod': 'admin.kitiwa.com',
+    'local': 'local'
 }
 
 # Application definition
@@ -51,7 +52,7 @@ LOCAL_APPS = (
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-if ENV != 'dev':
+if ENV != 'local':
     PRODUCTION_MIDDLEWARE = ('sslify.middleware.SSLifyMiddleware',)
 else:
     PRODUCTION_MIDDLEWARE = ()
