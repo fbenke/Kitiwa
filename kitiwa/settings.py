@@ -31,6 +31,11 @@ SITE_USER = 2
 
 # ENV to URL mapping
 ENV_SITE_MAPPING = {
+    ENV_LOCAL: {
+        SITE_API: 'localhost',
+        SITE_ADMIN: 'localhost',
+        SITE_USER: 'localhost'
+    },
     ENV_DEV: {
         SITE_API: 'api-dev.kitiwa.com',
         SITE_ADMIN: 'admin-dev.kitiwa.com',
