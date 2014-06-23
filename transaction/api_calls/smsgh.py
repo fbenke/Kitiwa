@@ -10,7 +10,7 @@ from kitiwa.settings import SMSGH_CLIENT_ID, SMSGH_CLIENT_SECRET,\
 from kitiwa.settings import NOTIFY_USER_CONF_REF_TEXT_SINGLE,\
     NOTIFY_USER_CONF_REF_TEXT_MULTIPLE, NOTIFY_USER_CONF_CALL_TO_ACTION
 
-from kitiwa.settings import NOTIFY_USER_TOPUP, NOXXI_TOP_UP_ENABLED
+from kitiwa.settings import NOTIFY_USER_TOPUP, KNOXXI_TOP_UP_ENABLED
 
 
 def send_message_confirm(mobile_number, reference_numbers):
@@ -29,7 +29,7 @@ def send_message_confirm(mobile_number, reference_numbers):
 
 def send_message_topup(mobile_number, topup):
 
-    if not NOXXI_TOP_UP_ENABLED:
+    if not KNOXXI_TOP_UP_ENABLED:
         return
 
     content = NOTIFY_USER_TOPUP.format(topup)

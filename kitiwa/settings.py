@@ -230,12 +230,12 @@ NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm 
 NOTIFY_USER_TOPUP = 'Hello, you\'ve been rewarded {} cedis of phone credit for using Kitiwa. Come back soon! <3 :) http://fb.com/kitiwaBTC'
 
 
-# Noxxi Settings
-KNOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('NOXXI_TOP_UP_ENABLED', '1')))
+# Knoxxi Settings
+KNOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('KNOXXI_TOP_UP_ENABLED', '1')))
 
 KNOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
-KNOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
-KNOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
+KNOXXI_USER_NAME = os.environ.get('KNOXXI_USER_NAME')
+KNOXXI_API_KEY = os.environ.get('KNOXXI_API_KEY')
 KNOXXI_TOPUP_PERCENTAGE = 0.01
 KNOXXI_NETWORK_CODES = {
     # Tigo
