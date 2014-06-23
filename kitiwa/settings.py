@@ -79,9 +79,11 @@ LOCAL_APPS = (
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+# SSL Redirects
 if ENV != ENV_LOCAL:
     PRODUCTION_MIDDLEWARE = ('sslify.middleware.SSLifyMiddleware',)
 else:
+    # No automatic redirects on local
     PRODUCTION_MIDDLEWARE = ()
 
 MIDDLEWARE_CLASSES = PRODUCTION_MIDDLEWARE + (
@@ -98,7 +100,6 @@ ROOT_URLCONF = 'kitiwa.urls'
 
 WSGI_APPLICATION = 'kitiwa.wsgi.application'
 
-
 # Database
 DATABASES = {
     'default': dj_database_url.config()
@@ -114,7 +115,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files
 STATIC_ROOT = 'static'
@@ -150,6 +150,7 @@ LOGGING = {
 # Honor the 'X-Forwarded-Proto' header for request.is_secure()
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Django Rest Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
@@ -163,6 +164,7 @@ REST_FRAMEWORK = {
     }
 }
 
+# Django CORS headers
 if ENV == ENV_LOCAL:
     CORS_ORIGIN_ALLOW_ALL = True
 else:
@@ -191,7 +193,6 @@ BLOCKCHAIN_API_SENDMANY = BLOCKCHAIN_API_URL + '/sendmany/'
 BLOCKCHAIN_TICKER = 'https://blockchain.info/ticker'
 BLOCKCHAIN_TRANSACTION_FEE_SATOSHI = 50000
 
-
 # Bitstamp settings
 BITSTAMP_API_URL = 'https://www.bitstamp.net/api/'
 BITSTAMP_API_TICKER = BITSTAMP_API_URL + 'ticker/'
@@ -210,10 +211,8 @@ BITSTAMP_ENC_API_SECRET_BASE64 = os.environ.get('BITSTAMP_ENC_API_SECRET_BASE64'
 BITSTAMP_ENC_SALT_BASE64 = os.environ.get('BITSTAMP_ENC_SALT_BASE64')
 BITSTAMP_ENC_IV_BASE64 = os.environ.get('BITSTAMP_ENC_IV_BASE64')
 
-
 # Openexchangerate settings
 OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_id=dc2e5940109a49249841672fa39c7ccd'
-
 
 # MPower settings
 MPOWER_ENDPOINT_OPR_TOKEN_REQUEST = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_REQUEST')
@@ -223,7 +222,6 @@ MPOWER_PRIVATE_KEY = os.environ.get('MPOWER_PRIVATE_KEY')
 MPOWER_TOKEN = os.environ.get('MPOWER_TOKEN')
 MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG = ('Invalid account alias')
 MPOWER_INVD_TOKEN_ERROR_MSG = ('Invalid payment request confirmation token specified')
-
 
 # Sendgrid Settings
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
@@ -237,7 +235,6 @@ SMSGH_SEND_MESSAGE = 'https://api.smsgh.com/v3/messages'
 SMSGH_USER = os.environ.get('SMSGH_USER')
 SMSGH_PASSWORD = os.environ.get('SMSGH_PASSWORD')
 SMSGH_CHECK_BALANCE = 'http://www.mytxtbox.com/smsghapi.ashx/getbalance'
-
 
 # Notification Settings
 NOTIFY_ADMIN_PAID = bool(int(os.environ.get('NOTIFY_ADMIN_PAID', '1')))
@@ -256,12 +253,11 @@ NOTIFY_USER_CONF_REF_TEXT_MULTIPLE = 'The following bitcoin orders have been pro
 NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm that you\'ve received it on our Facebook page: fb.com/kitiwaBTC'
 NOTIFY_USER_TOPUP = 'Hello, you\'ve been rewarded {} cedis of phone credit for using Kitiwa. Come back soon! <3 :) http://fb.com/kitiwaBTC'
 
-
-# Noxxi Settings
-KNOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('NOXXI_TOP_UP_ENABLED', '1')))
+# Knoxxi Settings
+KNOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('KNOXXI_TOP_UP_ENABLED', '1')))
 KNOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
-KNOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
-KNOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
+KNOXXI_USER_NAME = os.environ.get('KNOXXI_USER_NAME')
+KNOXXI_API_KEY = os.environ.get('KNOXXI_API_KEY')
 KNOXXI_TOPUP_PERCENTAGE = 0.01
 KNOXXI_NETWORK_CODES = {
     # Tigo
