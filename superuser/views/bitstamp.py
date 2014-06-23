@@ -11,7 +11,7 @@ from kitiwa import settings as s
 
 @api_view(['GET'])
 @permission_classes((IsAdminUser,))
-def get_rate(request):
+def get_bitstamp_rate(request):
     rate = get_bitstamp_exchange_rate()
     if rate is not None:
         return Response({'ask': rate})

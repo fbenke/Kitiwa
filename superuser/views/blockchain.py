@@ -25,7 +25,7 @@ def get_balance(request):
 
 @api_view(['GET'])
 @permission_classes((IsAdminUser,))
-def get_rate(request):
+def get_blockchain_rate(request):
     rate = get_blockchain_exchange_rate()
     if rate is not None:
         return Response({'rate': rate})

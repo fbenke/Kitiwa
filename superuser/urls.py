@@ -10,10 +10,10 @@ urlpatterns = patterns(
 
     # Blockchain
     url(r'^blockchain/balance/$', blockchain.get_balance),
-    url(r'^blockchain/rate/$', blockchain.get_rate),
+    url(r'^blockchain/rate/$', blockchain.get_blockchain_rate),
 
     # Bitstamp
-    url(r'^bitstamp/rate/$', bitstamp.get_rate),
+    url(r'^bitstamp/rate/$', bitstamp.get_bitstamp_rate),
     url(r'^bitstamp/data/$', bitstamp.get_request_data),
     url(r'^bitstamp/balance/$', bitstamp.Balance.as_view()),
     url(r'^bitstamp/orders/$', bitstamp.Orders.as_view()),
