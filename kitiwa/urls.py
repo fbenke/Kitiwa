@@ -21,7 +21,7 @@ urlpatterns = patterns(
     ),
     url(
         r'^api/v1/',
-        include('transaction.urls', namespace='api')
+        include('transaction.urls', namespace='transaction')
     ),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api-auth/', include('rest_framework.urls',

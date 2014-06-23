@@ -230,13 +230,13 @@ NOTIFY_USER_TOPUP = 'Hello, you\'ve been rewarded {} cedis of phone credit for u
 
 
 # Noxxi Settings
-NOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('NOXXI_TOP_UP_ENABLED', '1')))
+KNOXXI_TOP_UP_ENABLED = bool(int(os.environ.get('NOXXI_TOP_UP_ENABLED', '1')))
 
-NOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
-NOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
-NOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
-NOXXI_TOPUP_PERCENTAGE = 0.01
-NOXXI_NETWORK_CODES = {
+KNOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
+KNOXXI_USER_NAME = os.environ.get('NOXXI_USER_NAME')
+KNOXXI_API_KEY = os.environ.get('NOXXI_API_KEY')
+KNOXXI_TOPUP_PERCENTAGE = 0.01
+KNOXXI_NETWORK_CODES = {
     # Tigo
     '027': '005',
     '057': '005',

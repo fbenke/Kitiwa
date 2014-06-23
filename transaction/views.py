@@ -13,13 +13,13 @@ from rest_framework.throttling import AnonRateThrottle
 
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
-from kitiwa.settings import NOXXI_TOPUP_PERCENTAGE, NOXXI_TOP_UP_ENABLED
+from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
 from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG,\
     MPOWER_INVD_TOKEN_ERROR_MSG
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
-from transaction.api_calls import sendgrid_mail, mpower, smsgh, noxxi
+from transaction.api_calls import sendgrid_mail, mpower, smsgh, knoxxi
 from transaction import serializers
 from transaction import permissions
 from transaction import utils
@@ -266,12 +266,12 @@ def accept(request):
                             )
 
                     # top up account
-                    if NOXXI_TOP_UP_ENABLED:
+                    if KNOXXI_TOP_UP_ENABLED:
                         for number, amount in combined_sms_topup.iteritems():
-                            topup = round(amount * NOXXI_TOPUP_PERCENTAGE, 2)
+                            topup = round(amount * KNOXXI_TOPUP_PERCENTAGE, 2)
 
                             if topup > 0.20:
-                                success = noxxi.direct_top_up(
+                                success = knoxxi.direct_top_up(
                                     mobile_number=number,
                                     amount=topup
                                 )
