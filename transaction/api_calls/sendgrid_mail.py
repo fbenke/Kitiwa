@@ -10,7 +10,7 @@ from kitiwa.settings import ENV, ENV_SITE_MAPPING, SITE_ADMIN
 
 from django.contrib.auth.models import User
 from transaction.models import Transaction
-from transaction.utils import log_error
+from kitiwa.utils import log_error
 
 
 def send_mail_to_admins(subject, body):

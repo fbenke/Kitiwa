@@ -1,6 +1,5 @@
 import hashlib
 import re
-import logging
 
 
 def create_recipients_string(combined_transactions):
@@ -143,11 +142,6 @@ def get_bcaddress_version(str_address):
     if h3[0:4] == checksum:
         return ord(version)
     return None
-
-
-def log_error(message):
-    logger = logging.getLogger('django')
-    logger.error(message)
 
 
 class AcceptException(Exception):

@@ -1,7 +1,7 @@
 import requests
 import hashlib
 import time
-from transaction.utils import log_error
+from kitiwa.utils import log_error
 from kitiwa.settings import KNOXXI_TOP_UP_ENABLED, KNOXXI_USER_NAME,\
     KNOXXI_API_KEY, KNOXXI_BASE_URL, KNOXXI_NETWORK_CODES, proxies
 

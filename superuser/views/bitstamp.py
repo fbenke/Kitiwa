@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from kitiwa import settings as s
+from kitiwa.utils import log_error
 
 
 @api_view(['GET'])
@@ -26,13 +27,13 @@ def get_bitstamp_exchange_rate():
             try:
                 return get_rate_call.json().get('ask')
             except AttributeError:
-                # TODO: add logging: e.g. log_error('ERROR - BITSTAMP: <explanation>')
+                log_error('ERROR - BITSTAMP: Ask rate not present in 200 response')
                 return None
         else:
-            # TODO: add logging: e.g. log_error('ERROR - BITSTAMP: <explanation>')
+            log_error('ERROR - BITSTAMP: Call returned response code: ' + get_rate_call.status_code)
             return None
-    except requests.RequestException:
-        # TODO: add logging: e.g. log_error('ERROR - BITSTAMP: <explanation>') 
+    except requests.RequestException as e:
+        log_error('ERROR - BLOCKCHAIN: Call gave a request exception ' + repr(e))
         return None
 
 
@@ -61,11 +62,13 @@ class BitStampRequest(APIView):
     def post(self, request):
         params = self.get_params(request)
         if None in params.values():
+            log_error('ERROR - BITSTAMP (' + self.url + '): Missing nonce/signature in params')
             return Response({'error': 'Invalid data received'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         r = requests.post(self.url, data=params)
         if r.status_code == 200:
             return Response(r.json())
         else:
+            log_error('ERROR - BITSTAMP: Call returned response code: ' + r.status_code)
             return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get_params(self, request):
