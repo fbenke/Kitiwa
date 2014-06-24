@@ -298,8 +298,20 @@ def accept(request):
 
 
 @api_view(['POST'])
-def page_test(request):
+def page_test_backend(request):
 
-    print("received POST request")
+    print("received POST request for backend confirm")
+    print(request)
     print(request.POST)
     return Response({'status': 'success'})
+
+
+@api_view(['POST'])
+def page_test_frontend(request):
+
+    print("received POST request to redirect")
+    print(request)
+    print(request.POST)
+    return Response({'status': 'success'})
+
+
