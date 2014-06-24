@@ -1,0 +1,51 @@
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+	<h1> Testing the ePay API </h1>
+
+	<form action="post"> 
+
+		<!-- An array of the descriptions for the items being purchased. Each item description will be truncated to 50 characters or less. If only 1 item, the parameter can be provided as description. If multiple items, then, multiple indexed description parameters shoudl be provided, starting with index 0 (ie. description[0], description[1] ...). -->
+
+		<input type="hidden" name="description" value="1 USD Worth of BTC">
+		<!-- <input type="hidden" name="description[0]" value="Workshop manual - 1989 to 1995">  -->
+		<!-- <input type="hidden" name="description[1]" value="Door handle bezel">  -->
+		<!-- <input type="hidden" name="description[2]" value="Rear coil spring set"> -->
+
+
+		<!-- An array of the price for each line in the purchase. This subtotal should already include multiplication for the quantity of the item. The displayed total amount for each item will be calculated as (subtotal + tax + 
+		surcharge) for the item. If only 1 item, the parameter can be provided as subtotal. If multiple items, then 
+		multiple indexed subtotal parameters should be provided, starting with index 0 (ie. subtotal[0], subtotal[1] ...). -->
+
+		<input type="hidden" name="subtotal" value="162.73"> 
+		<!--   <input type="hidden" name="subtotal[0]" value="100.00"> 
+		  <input type="hidden" name="subtotal[1]" value="19.95"> 
+		  <input type="hidden" name="subtotal[2]" value="213.50"> 
+		-->
+
+		<!-- The url to which the Paga platform will return upon completion (SUCCESS or FAILURE) of processing the transaction. -->
+		<input type="hidden" name="return_url" value="https://kitiwa-dev.herokuapp.com/api/v1/paga/test/">
+
+		<!-- Invoice number we can provide to identify that transaction -->
+		<input type="hidden" name="invoice" value="PP-632545"> 
+
+		<!--  Mark this as a test transaction -->
+		<input type="hidden" name="test" value="true">
+		
+		<!-- Upon completion of the payment process, the user will be redirected back to your site, to the URL specified in the redirect_url parameter submitted with your form.  -->
+		<input type="hidden" name="redirect_url" value="https://kitiwa-dev.herokuapp.com/api/v1/paga/user_response/">
+
+		<!-- The account number of the customer on your own merchants system. Will be stored as part of the transaction and returned to you with transaction results  -->
+
+		<!-- <input type="hidden" name="customer_account" value="QR23587235">  -->
+</form> 
+
+<!-- begin Paga ePay widget code -->
+<script type="text/javascript" src="https://www.mypaga.com/paga-web/epay/ePay-button.paga?k=96caaff0-2e0c-4bb7-96b4-c1728956ea91&e=false"> </script> 
+<!-- end Paga ePay widget code -->
+
+</body>
+</html>

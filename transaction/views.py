@@ -295,3 +295,11 @@ def accept(request):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({'status': 'success'})
+
+
+@api_view(['POST'])
+def page_test(request):
+
+    print("received POST request")
+    print(request.POST)
+    return Response({'status': 'success'})

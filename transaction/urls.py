@@ -36,6 +36,9 @@ urlpatterns = patterns(
     url(r'^pricing/current/$', views.PricingCurrent.as_view(), name='pricing-current'),
     url(r'^pricing/ghs/$', views.PricingGHS.as_view(), name='pricing-ghs'),
 
+    # paga tests
+    url(r'^paga/test/$', 'transaction.views.page_test', name='paga-test'),
+
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)
