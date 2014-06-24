@@ -37,7 +37,7 @@ urlpatterns = patterns(
     url(r'^pricing/ghs/$', views.PricingGHS.as_view(), name='pricing-ghs'),
 
     # paga tests
-    url(r'^paga/return/$', 'transaction.views.page_test_backend', name='paga-test'),
+    url(r'^paga/confirm/$', 'transaction.views.page_test_backend', name='paga-test'),
     url(r'^paga/redirect/$', 'transaction.views.page_test_frontend', name='paga-test'),
 )
 
