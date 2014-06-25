@@ -3,12 +3,16 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
 import math
 import random
-from uuid import uuid4
 from kitiwa.settings import ONE_SATOSHI
 from transaction.utils import is_valid_btc_address
+from kitiwa.utils import log_error
 
 
 class Pricing(models.Model):
+
+    GHS = '0'
+    NGN = '1'
+    EXCHANGE_RATES = (GHS, NGN, )
 
     start = models.DateTimeField(
         'Start Time',
@@ -63,6 +67,11 @@ class Pricing(models.Model):
         help_text='Amount of GHS you get for 1 USD'
     )
 
+    ngn_usd = models.FloatField(
+        'NGN/USD Exchange Rate',
+        help_text='Amount of NGN you get for 1 USD'
+    )
+
     def __unicode__(self):
         return self.id
 
@@ -77,9 +86,21 @@ class Pricing(models.Model):
             previous_pricing.end = timezone.now()
             previous_pricing.save()
         except ObjectDoesNotExist:
-            pass
+            log_error('ERROR - Failed to end previous pricing.')
 
-    def get_unit_price(self, amount_usd):
+    def _get_exchange_rate(self, currency):
+        if currency == Pricing.GHS:
+            return self.ghs_usd
+        elif currency == Pricing.NGN:
+            return self.ngn_usd
+        else:
+            return None
+
+    def get_unit_price(self, amount_usd, currency):
+        if currency not in Pricing.EXCHANGE_RATES:
+            return None
+        exchange_rate = self._get_exchange_rate(currency)
+
         if 1 <= amount_usd < self.markup_cat_1_upper:
             markup = self.markup_cat_1
         elif self.markup_cat_1_upper <= amount_usd < self.markup_cat_2_upper:
@@ -88,7 +109,8 @@ class Pricing(models.Model):
             markup = self.markup_cat_3
         else:
             markup = self.markup_cat_4
-        return math.floor(self.ghs_usd * (1 + markup) * 10) / 10
+
+        return math.floor(exchange_rate * (1 + markup) * 10) / 10
 
 
 class Transaction(models.Model):
@@ -103,6 +125,7 @@ class Transaction(models.Model):
     CANCELLED = 'CANC'
     DECLINED = 'DECL'
     PROCESSED = 'PROC'
+
     TRANSACTION_STATUS = (
         (INVALID, 'invalid'),
         (INIT, 'initialized'),
@@ -111,6 +134,21 @@ class Transaction(models.Model):
         (DECLINED, 'declined'),
         (PROCESSED, 'processed'),
     )
+
+    MPOWER = '0'
+    PAGA = '1'
+
+    PAYMENT_PROVIDER = (MPOWER, PAGA, )
+
+    PAYMENT_TYPE = (
+        (MPOWER, 'mpower'),
+        (PAGA, 'paga'),
+    )
+
+    CURRENCY = {
+        MPOWER: Pricing.GHS,
+        PAGA: Pricing.NGN
+    }
 
     # Fields
     btc_wallet_address = models.CharField(
@@ -123,9 +161,16 @@ class Transaction(models.Model):
         max_length=15,
         help_text='Phone number for notification'
     )
+    # TODO: validate either ghs or ngn not null
     amount_ghs = models.FloatField(
         'GHS to Kitiwa',
+        null=True,
         help_text='GHS to be paid to Kitiwa'
+    )
+    amount_ngn = models.FloatField(
+        'NGN to Kitiwa',
+        null=True,
+        help_text='NGN to be paid to Kitiwa'
     )
     amount_usd = models.FloatField(
         'USD worth of BTC',
@@ -149,6 +194,17 @@ class Transaction(models.Model):
         choices=TRANSACTION_STATUS,
         default=INIT,
         help_text='State of the transaction'
+    )
+    reference_number = models.CharField(
+        'Reference Number',
+        max_length=10,
+        help_text='6-digit reference number given to the customer to refer to transaction in case of problems'
+    )
+    transaction_uuid = models.CharField(
+        "Transaction Identifier",
+        max_length=36,
+        blank=True,
+        help_text='UUID version 4 to associate payment with a transaction.'
     )
     initialized_at = models.DateTimeField(
         'Initialized at',
@@ -179,75 +235,23 @@ class Transaction(models.Model):
         blank=True,
         help_text='Time at which the transaction was declined by payment gateway'
     )
-    penalty_in_usd = models.FloatField(
-        'Penalty (USD)',
-        blank=True,
-        default=0.0,
-        help_text='Penalty paid (in USD) due to delay in processing BTC transfer (processed at >>> paid at)'
+    payment_type = models.CharField(
+        'Payment Type',
+        max_length=4,
+        choices=PAYMENT_TYPE,
+        help_text='Payment Method used for the transaction'
     )
     pricing = models.ForeignKey(
         Pricing,
         related_name='transactions',
-        help_text='Pricing information to enable amount_usd and amount_ghs relation (exchange rate and markup)'
+        help_text='Pricing information to enable amount_usd, amount_ghs, amount_ngn relation (exchange rates and markup)'
     )
-
-    reference_number = models.CharField(
-        'Reference Number',
-        max_length=6,
-        help_text='6-digit reference number given to the customer to refer to transaction in case of problems'
-    )
-
-    transaction_uuid = models.CharField(
-        "Transaction Identifier",
-        max_length=36,
-        blank=True,
-        help_text='UUID version 4 to associate subsequent POST requests with a transaction.'
-    )
-
-    # mpower specific fields
-    mpower_opr_token = models.CharField(
-        'MPower OPR Token',
-        max_length=30,
-        blank=True,
-        help_text='OPR Token returned by MPower after initialization of an Onsite Payment Request'
-    )
-
-    mpower_confirm_token = models.CharField(
-        'MPower Confirmation Token',
-        max_length=10,
-        blank=True,
-        help_text='Token sent to user by MPower via SMS / Email to confirm Onsite Payment Request'
-    )
-
-    mpower_invoice_token = models.CharField(
-        'MPower OPR Invoice Token',
-        max_length=30,
-        blank=True,
-        help_text='Only stored for tracking record'
-    )
-
-    mpower_response_code = models.CharField(
-        'MPower Response Code',
-        max_length=50,
-        blank=True,
-        help_text='Only stored for tracking record'
-    )
-
-    mpower_response_text = models.CharField(
-        'MPower Response Text',
-        max_length=200,
-        blank=True,
-        help_text='Only stored for tracking record'
-    )
-
-    # mpower specific fields
     smsgh_response_status = models.CharField(
         'Response code sent by SMSGH',
         max_length=5,
         blank=True,
         help_text='Code describing outcome of sending confirmation sms'
     )
-
     smsgh_message_id = models.CharField(
         'Message id sent by SMSGH',
         max_length=50,
@@ -256,20 +260,29 @@ class Transaction(models.Model):
     )
 
     @staticmethod
-    def calculate_ghs_price(amount_usd):
-        unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd)
-        amount_ghs = math.floor(amount_usd * unit_price * 10) / 10
-        return amount_ghs
+    def calculate_local_price(amount_usd, payment_type):
+        currency = Transaction.CURRENCY[payment_type]
+        unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd, currency)
+        return math.floor(amount_usd * unit_price * 10) / 10
 
-    def generate_reference_number(self):
+    def _set_local_price(self):
+        if self.payment_type not in Transaction.PAYMENT_PROVIDER:
+            return
+        local_price = Transaction.calculate_local_price(self.amount_usd, self.payment_type)
+        if self.payment_type == Transaction.MPOWER:
+            self.amount_ghs = local_price
+        elif self.payment_type == Transaction.PAGA:
+            self.ngn_usd = local_price
+
+    def _generate_reference_number(self):
         self.reference_number = str(random.randint(10000, 999999))
 
     def save(self, *args, **kwargs):
         if is_valid_btc_address(self.btc_wallet_address):
             if not self.pk:
                 self.pricing = Pricing.get_current_pricing()
-                self.amount_ghs = Transaction.calculate_ghs_price(self.amount_usd)
-                self.generate_reference_number()
+                self._set_local_price()
+                self._generate_reference_number()
             else:
                 original = Transaction.objects.get(pk=self.pk)
                 if original.pricing != self.pricing:
@@ -281,37 +294,6 @@ class Transaction(models.Model):
     def update_btc(self, rate):
         self.amount_btc = int(math.ceil((self.amount_usd / rate) * ONE_SATOSHI))
         self.processed_exchange_rate = rate
-        self.save()
-
-    def update_after_opr_token_request(
-            self, response_code, response_text,
-            mpower_opr_token, mpower_invoice_token):
-
-        self.mpower_response_code = response_code
-        self.mpower_response_text = response_text
-
-        if response_code == '00':
-            self.mpower_opr_token = mpower_opr_token
-            self.mpower_invoice_token = mpower_invoice_token
-            self.transaction_uuid = uuid4()
-        else:
-            self.state = Transaction.INVALID
-            self.declined_at = timezone.now()
-        self.save()
-
-    def update_after_opr_charge(self, response_code, response_text):
-
-        self.mpower_response_code = response_code
-        self.mpower_response_text = response_text
-
-        if response_code == '00':
-            self.state = Transaction.PAID
-            self.paid_at = timezone.now()
-
-        else:
-            self.state = Transaction.DECLINED
-            self.declined_at = timezone.now()
-
         self.save()
 
     def update_after_sms_notification(
