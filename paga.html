@@ -27,17 +27,14 @@
 		-->
 
 		<!-- The url to which the Paga platform will return upon completion (SUCCESS or FAILURE) of processing the transaction. -->
-		<input type="hidden" name="return_url" value="https://kitiwa-dev.herokuapp.com/api/v1/paga/test/">
+		<input type="hidden" name="return_url" value="https://kitiwa-dev.herokuapp.com/api/v1/paga/redirect/">
 
 		<!-- Invoice number we can provide to identify that transaction -->
-		<input type="hidden" name="invoice" value="PP-632545"> 
+		<input type="hidden" name="invoice" value="64603a66-2e20-4874-8590-e628676399a3"> 
 
 		<!--  Mark this as a test transaction -->
-		<input type="hidden" name="test" value="true">
+		<input type="hidden" name="test" value="false">
 		
-		<!-- Upon completion of the payment process, the user will be redirected back to your site, to the URL specified in the redirect_url parameter submitted with your form.  -->
-		<input type="hidden" name="redirect_url" value="https://kitiwa-dev.herokuapp.com/">
-
 		<!-- The account number of the customer on your own merchants system. Will be stored as part of the transaction and returned to you with transaction results  -->
 
 		<!-- <input type="hidden" name="customer_account" value="QR23587235">  -->
