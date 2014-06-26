@@ -10,7 +10,7 @@ class MPowerAdmin(admin.ModelAdmin):
         'mpower_confirm_token', 'mpower_invoice_token', 'transaction'
     )
 
-    # readonly_fields = fields
+    readonly_fields = fields
 
     list_display = ('id', )
 

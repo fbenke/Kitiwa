@@ -72,10 +72,10 @@ class Pricing(models.Model):
         help_text='Amount of GHS you get for 1 USD'
     )
 
-    # ngn_usd = models.FloatField(
-    #     'NGN/USD Exchange Rate',
-    #     help_text='Amount of NGN you get for 1 USD'
-    # )
+    ngn_usd = models.FloatField(
+        'NGN/USD Exchange Rate',
+        help_text='Amount of NGN you get for 1 USD'
+    )
 
     @staticmethod
     def get_current_pricing():
@@ -260,42 +260,6 @@ class Transaction(models.Model):
         max_length=50,
         blank=True,
         help_text='Identifier referring to confirmation sms sent by SMSGH'
-    )
-
-        # mpower specific fields
-    mpower_opr_token = models.CharField(
-        'MPower OPR Token',
-        max_length=30,
-        blank=True,
-        help_text='OPR Token returned by MPower after initialization of an Onsite Payment Request'
-    )
-
-    mpower_confirm_token = models.CharField(
-        'MPower Confirmation Token',
-        max_length=10,
-        blank=True,
-        help_text='Token sent to user by MPower via SMS / Email to confirm Onsite Payment Request'
-    )
-
-    mpower_invoice_token = models.CharField(
-        'MPower OPR Invoice Token',
-        max_length=30,
-        blank=True,
-        help_text='Only stored for tracking record'
-    )
-
-    mpower_response_code = models.CharField(
-        'MPower Response Code',
-        max_length=50,
-        blank=True,
-        help_text='Only stored for tracking record'
-    )
-
-    mpower_response_text = models.CharField(
-        'MPower Response Text',
-        max_length=200,
-        blank=True,
-        help_text='Only stored for tracking record'
     )
 
     def __unicode__(self):
