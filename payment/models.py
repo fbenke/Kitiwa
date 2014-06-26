@@ -1,17 +1,19 @@
 from django.db import models
-from uuid import uuid4
-from transaction.models import Transaction
 from django.utils import timezone
 
+from transaction.models import Transaction
 
-class MPower_Payment(models.Model):
+from payment.api_calls import mpower
+
+
+class MPowerPayment(models.Model):
+
     transaction = models.ForeignKey(
         Transaction,
         related_name='mpower_payments',
         help_text='Transaction associated with this payment'
     )
 
-    # mpower specific fields
     mpower_opr_token = models.CharField(
         'MPower OPR Token',
         max_length=30,
@@ -47,21 +49,36 @@ class MPower_Payment(models.Model):
         help_text='Only stored for tracking record'
     )
 
-    def update_after_opr_token_request(
-            self, response_code, response_text,
-            mpower_opr_token, mpower_invoice_token):
+    def opr_token_request(self, phone_number, amount):
+        response_code, response_text, opr_token, invoice_token = (
+            mpower.opr_token_request(
+                mpower_phone_number=phone_number,
+                amount=amount
+            )
+        )
 
         self.mpower_response_code = response_code
         self.mpower_response_text = response_text
 
+        success = True
+
         if response_code == '00':
-            self.mpower_opr_token = mpower_opr_token
-            self.mpower_invoice_token = mpower_invoice_token
-            self.transaction.transaction_uuid = uuid4()
-        else:
-            self.transaction.state = Transaction.INVALID
-            self.transaction.declined_at = timezone.now()
+            self.mpower_opr_token = opr_token
+            self.mpower_invoice_token = invoice_token
+            success = False
+
         self.save()
+
+        return success
+
+    @staticmethod
+    def opr_token_respose(transaction_id):
+        mpower_payment = MPowerPayment.objects.get(transaction__id=transaction_id)
+        response = {
+            'response_code': mpower_payment.mpower_response_code,
+            'response_text': mpower_payment.mpower_response_text
+        }
+        return response
 
     def update_after_opr_charge(self, response_code, response_text):
 
@@ -76,5 +93,4 @@ class MPower_Payment(models.Model):
             self.transaction.state = Transaction.DECLINED
             self.transaction.declined_at = timezone.now()
 
-        # TODO: save? what is saved?
         self.save()

@@ -11,25 +11,20 @@ from kitiwa.settings import MAXIMUM_AMOUNT_BTC_BUYING
 class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
-        fields = (
-            'id', 'btc_wallet_address', 'notification_phone_number',
-            'amount_usd', 'state', 'initialized_at', 'paid_at', 'processed_at',
-            'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
-            'processed_exchange_rate', 'amount_ghs', 'amount_btc',
-            'mpower_opr_token', 'transaction_uuid', 'reference_number',
-            'mpower_invoice_token', 'mpower_response_code',
-            'mpower_response_text', 'mpower_confirm_token',
-            'smsgh_response_status', 'smsgh_message_id',
+
+        read_and_write_fields = (
+            'btc_wallet_address', 'notification_phone_number', 'payment_type',
+            'amount_usd',
         )
+
         read_only_fields = (
             'id', 'state', 'initialized_at', 'paid_at', 'processed_at',
-            'cancelled_at', 'declined_at', 'penalty_in_usd', 'pricing',
-            'processed_exchange_rate', 'amount_ghs', 'amount_btc',
-            'mpower_opr_token', 'transaction_uuid', 'reference_number',
-            'mpower_invoice_token', 'mpower_response_code',
-            'mpower_response_text', 'mpower_confirm_token',
-            'smsgh_response_status', 'smsgh_message_id',
+            'cancelled_at', 'declined_at', 'pricing', 'processed_exchange_rate',
+            'amount_ghs', 'amount_btc', 'amount_ngn', 'transaction_uuid',
+            'reference_number', 'smsgh_response_status', 'smsgh_message_id',
         )
+
+        fields = read_only_fields + read_and_write_fields
 
     def validate_btc_wallet_address(self, attrs, source):
         """
@@ -59,6 +54,13 @@ class TransactionSerializer(serializers.ModelSerializer):
             )
         return attrs
 
+    def validate_payment_type(self, attrs, source):
+        if attrs[source] not in Transaction.PAYMENT_PROVIDER:
+            raise serializers.ValidationError(
+                'unknown payment provider'
+            )
+        return attrs
+        
 
 class TransactionOprChargeSerializer(serializers.ModelSerializer):
     class Meta:

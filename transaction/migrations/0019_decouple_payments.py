@@ -1,30 +1,32 @@
 # -*- coding: utf-8 -*-
-from south.utils import datetime_utils as datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from south.v2 import DataMigration
 
 
-class Migration(SchemaMigration):
+class Migration(DataMigration):
 
     def forwards(self, orm):
-        # Adding model 'MPowerPayment'
-        db.create_table(u'payment_mpowerpayment', (
-            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('transaction', self.gf('django.db.models.fields.related.ForeignKey')(related_name='mpower_payments', to=orm['transaction.Transaction'])),
-            ('mpower_opr_token', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
-            ('mpower_confirm_token', self.gf('django.db.models.fields.CharField')(max_length=10, blank=True)),
-            ('mpower_invoice_token', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
-            ('mpower_response_code', self.gf('django.db.models.fields.CharField')(max_length=50, blank=True)),
-            ('mpower_response_text', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
-        ))
-        db.send_create_signal(u'payment', ['MPowerPayment'])
-
+        "Manually written forwards method."
+        for transaction in orm.Transaction.objects.all():
+            payment = orm['payment.MPowerPayment'].objects.create(
+                mpower_opr_token=transaction.mpower_opr_token,
+                mpower_confirm_token=transaction.mpower_confirm_token,
+                mpower_invoice_token=transaction.mpower_invoice_token,
+                mpower_response_code=transaction.mpower_response_code,
+                mpower_response_text=transaction.mpower_response_text,
+                transaction=transaction
+            )
+            payment.save()
 
     def backwards(self, orm):
-        # Deleting model 'MPowerPayment'
-        db.delete_table(u'payment_mpowerpayment')
-
+        "Manually written forwards method."
+        for payment in orm['payment.MPowerPayment'].objects.all():
+            transaction = orm.Transaction.objects.get(id=payment.transaction.id)
+            transaction.mpower_opr_token = payment.mpower_opr_token
+            transaction.mpower_confirm_token = payment.mpower_confirm_token
+            transaction.mpower_invoice_token = payment.mpower_invoice_token
+            transaction.mpower_response_code = payment.mpower_response_code
+            transaction.mpower_response_text = payment.mpower_response_text
+            transaction.save()
 
     models = {
         u'payment.mpowerpayment': {
@@ -49,7 +51,6 @@ class Migration(SchemaMigration):
             'markup_cat_3': ('django.db.models.fields.FloatField', [], {}),
             'markup_cat_3_upper': ('django.db.models.fields.IntegerField', [], {}),
             'markup_cat_4': ('django.db.models.fields.FloatField', [], {}),
-            'ngn_usd': ('django.db.models.fields.FloatField', [], {}),
             'start': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
         },
         u'transaction.transaction': {
@@ -63,6 +64,11 @@ class Migration(SchemaMigration):
             'declined_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'initialized_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'mpower_confirm_token': ('django.db.models.fields.CharField', [], {'max_length': '10', 'blank': 'True'}),
+            'mpower_invoice_token': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'mpower_opr_token': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'mpower_response_code': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            'mpower_response_text': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
             'notification_phone_number': ('django.db.models.fields.CharField', [], {'max_length': '15'}),
             'paid_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'payment_type': ('django.db.models.fields.CharField', [], {'max_length': '4'}),
@@ -77,4 +83,5 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['payment']
+    complete_apps = ['payment', 'transaction']
+    symmetrical = True

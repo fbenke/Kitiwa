@@ -11,21 +11,6 @@ class Migration(SchemaMigration):
         # Deleting field 'Transaction.penalty_in_usd'
         db.delete_column(u'transaction_transaction', 'penalty_in_usd')
 
-        # Deleting field 'Transaction.mpower_response_text'
-        db.delete_column(u'transaction_transaction', 'mpower_response_text')
-
-        # Deleting field 'Transaction.mpower_invoice_token'
-        db.delete_column(u'transaction_transaction', 'mpower_invoice_token')
-
-        # Deleting field 'Transaction.mpower_confirm_token'
-        db.delete_column(u'transaction_transaction', 'mpower_confirm_token')
-
-        # Deleting field 'Transaction.mpower_opr_token'
-        db.delete_column(u'transaction_transaction', 'mpower_opr_token')
-
-        # Deleting field 'Transaction.mpower_response_code'
-        db.delete_column(u'transaction_transaction', 'mpower_response_code')
-
         # Adding field 'Transaction.amount_ngn'
         db.add_column(u'transaction_transaction', 'amount_ngn',
                       self.gf('django.db.models.fields.FloatField')(null=True),
@@ -37,46 +22,16 @@ class Migration(SchemaMigration):
                       keep_default=False)
 
 
-        # Changing field 'Transaction.reference_number'
-        db.alter_column(u'transaction_transaction', 'reference_number', self.gf('django.db.models.fields.CharField')(max_length=10))
-
         # Changing field 'Transaction.amount_ghs'
         db.alter_column(u'transaction_transaction', 'amount_ghs', self.gf('django.db.models.fields.FloatField')(null=True))
-        # Adding field 'Pricing.ngn_usd'
-        db.add_column(u'transaction_pricing', 'ngn_usd',
-                      self.gf('django.db.models.fields.FloatField')(default=0),
-                      keep_default=False)
 
+        # Changing field 'Transaction.reference_number'
+        db.alter_column(u'transaction_transaction', 'reference_number', self.gf('django.db.models.fields.CharField')(max_length=10))
 
     def backwards(self, orm):
         # Adding field 'Transaction.penalty_in_usd'
         db.add_column(u'transaction_transaction', 'penalty_in_usd',
                       self.gf('django.db.models.fields.FloatField')(default=0.0, blank=True),
-                      keep_default=False)
-
-        # Adding field 'Transaction.mpower_response_text'
-        db.add_column(u'transaction_transaction', 'mpower_response_text',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=200, blank=True),
-                      keep_default=False)
-
-        # Adding field 'Transaction.mpower_invoice_token'
-        db.add_column(u'transaction_transaction', 'mpower_invoice_token',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=30, blank=True),
-                      keep_default=False)
-
-        # Adding field 'Transaction.mpower_confirm_token'
-        db.add_column(u'transaction_transaction', 'mpower_confirm_token',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=10, blank=True),
-                      keep_default=False)
-
-        # Adding field 'Transaction.mpower_opr_token'
-        db.add_column(u'transaction_transaction', 'mpower_opr_token',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=30, blank=True),
-                      keep_default=False)
-
-        # Adding field 'Transaction.mpower_response_code'
-        db.add_column(u'transaction_transaction', 'mpower_response_code',
-                      self.gf('django.db.models.fields.CharField')(default='', max_length=50, blank=True),
                       keep_default=False)
 
         # Deleting field 'Transaction.amount_ngn'
@@ -86,14 +41,11 @@ class Migration(SchemaMigration):
         db.delete_column(u'transaction_transaction', 'payment_type')
 
 
-        # Changing field 'Transaction.reference_number'
-        db.alter_column(u'transaction_transaction', 'reference_number', self.gf('django.db.models.fields.CharField')(max_length=6))
-
         # Changing field 'Transaction.amount_ghs'
         db.alter_column(u'transaction_transaction', 'amount_ghs', self.gf('django.db.models.fields.FloatField')(default=0))
-        # Deleting field 'Pricing.ngn_usd'
-        db.delete_column(u'transaction_pricing', 'ngn_usd')
 
+        # Changing field 'Transaction.reference_number'
+        db.alter_column(u'transaction_transaction', 'reference_number', self.gf('django.db.models.fields.CharField')(max_length=6))
 
     models = {
         u'transaction.pricing': {
@@ -108,7 +60,6 @@ class Migration(SchemaMigration):
             'markup_cat_3': ('django.db.models.fields.FloatField', [], {}),
             'markup_cat_3_upper': ('django.db.models.fields.IntegerField', [], {}),
             'markup_cat_4': ('django.db.models.fields.FloatField', [], {}),
-            'ngn_usd': ('django.db.models.fields.FloatField', [], {}),
             'start': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'})
         },
         u'transaction.transaction': {
@@ -122,6 +73,11 @@ class Migration(SchemaMigration):
             'declined_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'initialized_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'mpower_confirm_token': ('django.db.models.fields.CharField', [], {'max_length': '10', 'blank': 'True'}),
+            'mpower_invoice_token': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'mpower_opr_token': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
+            'mpower_response_code': ('django.db.models.fields.CharField', [], {'max_length': '50', 'blank': 'True'}),
+            'mpower_response_text': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
             'notification_phone_number': ('django.db.models.fields.CharField', [], {'max_length': '15'}),
             'paid_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'payment_type': ('django.db.models.fields.CharField', [], {'max_length': '4'}),

@@ -1,11 +1,16 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
+
+from kitiwa.settings import ONE_SATOSHI
+from kitiwa.utils import log_error
+
+from transaction.utils import is_valid_btc_address
+
+from uuid import uuid4
 import math
 import random
-from kitiwa.settings import ONE_SATOSHI
-from transaction.utils import is_valid_btc_address
-from kitiwa.utils import log_error
+# TODO: move constants to settings file?
 
 
 class Pricing(models.Model):
@@ -67,13 +72,10 @@ class Pricing(models.Model):
         help_text='Amount of GHS you get for 1 USD'
     )
 
-    ngn_usd = models.FloatField(
-        'NGN/USD Exchange Rate',
-        help_text='Amount of NGN you get for 1 USD'
-    )
-
-    def __unicode__(self):
-        return self.id
+    # ngn_usd = models.FloatField(
+    #     'NGN/USD Exchange Rate',
+    #     help_text='Amount of NGN you get for 1 USD'
+    # )
 
     @staticmethod
     def get_current_pricing():
@@ -111,6 +113,9 @@ class Pricing(models.Model):
             markup = self.markup_cat_4
 
         return math.floor(exchange_rate * (1 + markup) * 10) / 10
+
+    def __unicode__(self):
+        return '{}'.format(self.id)
 
 
 class Transaction(models.Model):
@@ -150,7 +155,6 @@ class Transaction(models.Model):
         PAGA: Pricing.NGN
     }
 
-    # Fields
     btc_wallet_address = models.CharField(
         'BTC Wallet Address',
         max_length=34,
@@ -161,7 +165,6 @@ class Transaction(models.Model):
         max_length=15,
         help_text='Phone number for notification'
     )
-    # TODO: validate either ghs or ngn not null
     amount_ghs = models.FloatField(
         'GHS to Kitiwa',
         null=True,
@@ -259,11 +262,44 @@ class Transaction(models.Model):
         help_text='Identifier referring to confirmation sms sent by SMSGH'
     )
 
-    @staticmethod
-    def calculate_local_price(amount_usd, payment_type):
-        currency = Transaction.CURRENCY[payment_type]
-        unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd, currency)
-        return math.floor(amount_usd * unit_price * 10) / 10
+        # mpower specific fields
+    mpower_opr_token = models.CharField(
+        'MPower OPR Token',
+        max_length=30,
+        blank=True,
+        help_text='OPR Token returned by MPower after initialization of an Onsite Payment Request'
+    )
+
+    mpower_confirm_token = models.CharField(
+        'MPower Confirmation Token',
+        max_length=10,
+        blank=True,
+        help_text='Token sent to user by MPower via SMS / Email to confirm Onsite Payment Request'
+    )
+
+    mpower_invoice_token = models.CharField(
+        'MPower OPR Invoice Token',
+        max_length=30,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
+
+    mpower_response_code = models.CharField(
+        'MPower Response Code',
+        max_length=50,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
+
+    mpower_response_text = models.CharField(
+        'MPower Response Text',
+        max_length=200,
+        blank=True,
+        help_text='Only stored for tracking record'
+    )
+
+    def __unicode__(self):
+        return '{}'.format(self.id)
 
     def _set_local_price(self):
         if self.payment_type not in Transaction.PAYMENT_PROVIDER:
@@ -277,12 +313,19 @@ class Transaction(models.Model):
     def _generate_reference_number(self):
         self.reference_number = str(random.randint(10000, 999999))
 
+    @staticmethod
+    def calculate_local_price(amount_usd, payment_type):
+        currency = Transaction.CURRENCY[payment_type]
+        unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd, currency)
+        return math.floor(amount_usd * unit_price * 10) / 10
+
     def save(self, *args, **kwargs):
         if is_valid_btc_address(self.btc_wallet_address):
             if not self.pk:
                 self.pricing = Pricing.get_current_pricing()
                 self._set_local_price()
                 self._generate_reference_number()
+                self.transaction_uuid = uuid4()
             else:
                 original = Transaction.objects.get(pk=self.pk)
                 if original.pricing != self.pricing:

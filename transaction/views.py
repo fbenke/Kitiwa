@@ -1,5 +1,7 @@
 from django.db import transaction as dbtransaction
 from django.utils.datetime_safe import datetime
+from django.utils import timezone
+
 import requests
 
 from rest_framework import viewsets
@@ -16,14 +18,18 @@ from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
 from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG,\
     MPOWER_INVD_TOKEN_ERROR_MSG
+
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
-from transaction.api_calls import sendgrid_mail, mpower, smsgh, knoxxi
+from transaction.api_calls import sendgrid_mail, smsgh, knoxxi
+from payment.api_calls import mpower
 from transaction import serializers
 from transaction import permissions
 from transaction import utils
 from transaction.utils import AcceptException
+
+from payment.models import MPowerPayment
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -39,25 +45,25 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
         # create a custom response to the frontend
         try:
-            transaction_uuid = response.data['transaction_uuid']
-            response_code = response.data['mpower_response_code']
-            response_text = response.data['mpower_response_text']
-            reference_number = response.data['reference_number']
-            amount_ghs = response.data['amount_ghs']
+            payment_type = response.data['payment_type']
+            transaction_id = response.data['id']
 
             response.data = {
-                'mpower_response_code': response_code,
-                'mpower_response_text': response_text,
-                'reference_number': reference_number
+                'reference_number': response.data['reference_number'],
+                'transaction_uuid': response.data['transaction_uuid'],
+                'amount_ghs': response.data['amount_ghs']
             }
 
-            if response_code == '00':
-                response.data['transaction_uuid'] = transaction_uuid
-                response.data['amount_ghs'] = amount_ghs
-            elif response_code == '1001' and response_text.find(MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG) != -1:
-                response.status_code = status.HTTP_400_BAD_REQUEST
-            else:
-                response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            # additional modifications for mpower payments
+            if payment_type == Transaction.MPOWER:
+                mpower_response = MPowerPayment.opr_token_respose(transaction_id)
+                print(mpower_response)
+                response.data['mpower_response'] = mpower_response
+                if mpower_response['response_code'] == '1001':
+                    if mpower_response['response_text'].find(MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG) != -1:
+                        response.status_code = status.HTTP_400_BAD_REQUEST
+                    else:
+                        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
 
         except KeyError:
             response.status_code = status.HTTP_400_BAD_REQUEST
@@ -73,21 +79,18 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     def post_save(self, obj, created=False):
 
-        phone_number = obj.notification_phone_number
-        amount = obj.amount_ghs
-
-        response_code, response_text, opr_token, invoice_token = (
-            mpower.opr_token_request(
-                mpower_phone_number=phone_number,
-                amount=amount
+        # TODO: is there a better way to do this?
+        if obj.payment_type == Transaction.MPOWER:
+            mpower_payment = MPowerPayment()
+            mpower_payment.transaction = obj
+            success = mpower_payment.opr_token_request(
+                obj.notification_phone_number, obj.amount_ghs
             )
-        )
 
-        obj.update_after_opr_token_request(
-            response_code=response_code,
-            response_text=response_text,
-            mpower_opr_token=opr_token,
-            mpower_invoice_token=invoice_token)
+            if not success:
+                obj.state = Transaction.INVALID
+                obj.declined_at = timezone.now()
+                obj.save()
 
 
 class TransactionOprCharge(APIView):
@@ -313,5 +316,3 @@ def page_test_frontend(request):
     print(request)
     print(request.POST)
     return Response({'status': 'success'})
-
-
