@@ -180,7 +180,7 @@ proxies = {
 }
 
 # Site settings
-MAXIMUM_AMOUNT_BTC_BUYING = 250
+MAXIMUM_AMOUNT_BTC_BUYING = 500
 
 # Bitcoin general settings
 ONE_SATOSHI = 100000000

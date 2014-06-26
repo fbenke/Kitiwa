@@ -56,8 +56,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
             # additional modifications for mpower payments
             if payment_type == Transaction.MPOWER:
-                mpower_response = MPowerPayment.opr_token_respose(transaction_id)
-                print(mpower_response)
+                mpower_response = MPowerPayment.opr_token_response(transaction_id)
                 response.data['mpower_response'] = mpower_response
                 if mpower_response['response_code'] == '1001':
                     if mpower_response['response_text'].find(MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG) != -1:

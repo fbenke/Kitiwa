@@ -60,19 +60,19 @@ class MPowerPayment(models.Model):
         self.mpower_response_code = response_code
         self.mpower_response_text = response_text
 
-        success = True
+        success = False
 
         if response_code == '00':
             self.mpower_opr_token = opr_token
             self.mpower_invoice_token = invoice_token
-            success = False
+            success = True
 
         self.save()
 
         return success
 
     @staticmethod
-    def opr_token_respose(transaction_id):
+    def opr_token_response(transaction_id):
         mpower_payment = MPowerPayment.objects.get(transaction__id=transaction_id)
         response = {
             'response_code': mpower_payment.mpower_response_code,
