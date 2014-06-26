@@ -2,7 +2,8 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
 
-from kitiwa.settings import ONE_SATOSHI
+from kitiwa.settings import ONE_SATOSHI, GHS, NGN, PAGA, MPOWER, CURRENCIES, \
+    PAYMENT_PROVIDERS, PAYMENT_CURRENCY
 from kitiwa.utils import log_error
 
 from transaction.utils import is_valid_btc_address
@@ -10,14 +11,9 @@ from transaction.utils import is_valid_btc_address
 from uuid import uuid4
 import math
 import random
-# TODO: move constants to settings file?
 
 
 class Pricing(models.Model):
-
-    GHS = '0'
-    NGN = '1'
-    EXCHANGE_RATES = (GHS, NGN, )
 
     start = models.DateTimeField(
         'Start Time',
@@ -91,15 +87,15 @@ class Pricing(models.Model):
             log_error('ERROR - Failed to end previous pricing.')
 
     def _get_exchange_rate(self, currency):
-        if currency == Pricing.GHS:
+        if currency == GHS:
             return self.ghs_usd
-        elif currency == Pricing.NGN:
+        elif currency == NGN:
             return self.ngn_usd
         else:
             return None
 
     def get_unit_price(self, amount_usd, currency):
-        if currency not in Pricing.EXCHANGE_RATES:
+        if currency not in CURRENCIES:
             return None
         exchange_rate = self._get_exchange_rate(currency)
 
@@ -140,20 +136,10 @@ class Transaction(models.Model):
         (PROCESSED, 'processed'),
     )
 
-    MPOWER = '0'
-    PAGA = '1'
-
-    PAYMENT_PROVIDER = (MPOWER, PAGA, )
-
     PAYMENT_TYPE = (
         (MPOWER, 'mpower'),
         (PAGA, 'paga'),
     )
-
-    CURRENCY = {
-        MPOWER: Pricing.GHS,
-        PAGA: Pricing.NGN
-    }
 
     btc_wallet_address = models.CharField(
         'BTC Wallet Address',
@@ -266,20 +252,20 @@ class Transaction(models.Model):
         return '{}'.format(self.id)
 
     def _set_local_price(self):
-        if self.payment_type not in Transaction.PAYMENT_PROVIDER:
+        if self.payment_type not in PAYMENT_PROVIDERS:
             return
         local_price = Transaction.calculate_local_price(self.amount_usd, self.payment_type)
-        if self.payment_type == Transaction.MPOWER:
+        if self.payment_type == MPOWER:
             self.amount_ghs = local_price
-        elif self.payment_type == Transaction.PAGA:
-            self.ngn_usd = local_price
+        elif self.payment_type == PAGA:
+            self.amount_ngn = local_price
 
     def _generate_reference_number(self):
         self.reference_number = str(random.randint(10000, 999999))
 
     @staticmethod
     def calculate_local_price(amount_usd, payment_type):
-        currency = Transaction.CURRENCY[payment_type]
+        currency = PAYMENT_CURRENCY[payment_type]
         unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd, currency)
         return math.floor(amount_usd * unit_price * 10) / 10
 

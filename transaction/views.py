@@ -16,8 +16,9 @@ from rest_framework.throttling import AnonRateThrottle
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
-from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG,\
-    MPOWER_INVD_TOKEN_ERROR_MSG
+from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_INVD_TOKEN_ERROR_MSG
+from kitiwa.settings import PAGA_MERCHANT_KEY
+from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN
 
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
@@ -47,15 +48,22 @@ class TransactionViewSet(viewsets.ModelViewSet):
         try:
             payment_type = response.data['payment_type']
             transaction_id = response.data['id']
+            amount_ghs = response.data['amount_ghs']
+            amount_ngn = response.data['amount_ngn']
 
             response.data = {
                 'reference_number': response.data['reference_number'],
                 'transaction_uuid': response.data['transaction_uuid'],
-                'amount_ghs': response.data['amount_ghs']
             }
 
+            # add amount in local currency
+            if PAYMENT_CURRENCY[payment_type] == GHS:
+                response.data['amount_ghs'] = amount_ghs
+            elif PAYMENT_CURRENCY[payment_type] == NGN:
+                response.data['amount_ngn'] = amount_ngn
+
             # additional modifications for mpower payments
-            if payment_type == Transaction.MPOWER:
+            if payment_type == MPOWER:
                 mpower_response = MPowerPayment.opr_token_response(transaction_id)
                 response.data['mpower_response'] = mpower_response
                 if mpower_response['response_code'] == '1001':
@@ -63,6 +71,8 @@ class TransactionViewSet(viewsets.ModelViewSet):
                         response.status_code = status.HTTP_400_BAD_REQUEST
                     else:
                         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+            elif payment_type == PAGA:
+                response.data['merchant_key'] = PAGA_MERCHANT_KEY
 
         except KeyError:
             response.status_code = status.HTTP_400_BAD_REQUEST
@@ -79,7 +89,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
     def post_save(self, obj, created=False):
 
         # TODO: is there a better way to do this?
-        if obj.payment_type == Transaction.MPOWER:
+        if obj.payment_type == MPOWER:
             mpower_payment = MPowerPayment()
             mpower_payment.transaction = obj
             success = mpower_payment.opr_token_request(
@@ -296,22 +306,4 @@ def accept(request):
             return Response("{'error': 'Error making btc transfer request to blockchain'}",
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    return Response({'status': 'success'})
-
-
-@api_view(['POST'])
-def page_test_backend(request):
-
-    print("received POST request for backend confirm")
-    print(request)
-    print(request.POST)
-    return Response({'status': 'success'})
-
-
-@api_view(['POST'])
-def page_test_frontend(request):
-
-    print("received POST request to redirect")
-    print(request)
-    print(request.POST)
     return Response({'status': 'success'})

@@ -5,7 +5,7 @@ from rest_framework import serializers
 from transaction.models import Transaction, Pricing
 from transaction.utils import is_valid_btc_address
 
-from kitiwa.settings import MAXIMUM_AMOUNT_BTC_BUYING
+from kitiwa.settings import MAXIMUM_AMOUNT_BTC_BUYING, PAYMENT_PROVIDERS
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -55,12 +55,12 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_payment_type(self, attrs, source):
-        if attrs[source] not in Transaction.PAYMENT_PROVIDER:
+        if attrs[source] not in PAYMENT_PROVIDERS:
             raise serializers.ValidationError(
                 'unknown payment provider'
             )
         return attrs
-        
+
 
 class TransactionOprChargeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -78,10 +78,13 @@ class TransactionOprChargeSerializer(serializers.ModelSerializer):
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing
-        fields = ('markup_cat_1', 'markup_cat_1_upper', 'markup_cat_2',
-                  'markup_cat_2_upper', 'markup_cat_3', 'markup_cat_3_upper',
-                  'markup_cat_4', 'ghs_usd', 'start', 'end',)
+        read_and_write_fields = (
+            'markup_cat_1', 'markup_cat_1_upper', 'markup_cat_2',
+            'markup_cat_2_upper', 'markup_cat_3', 'markup_cat_3_upper',
+            'markup_cat_4', 'ghs_usd', 'ngn_usd'
+        )
         read_only_fields = ('start', 'end',)
+        fields = read_and_write_fields + read_only_fields
 
     def validate(self, attrs):
         if not(

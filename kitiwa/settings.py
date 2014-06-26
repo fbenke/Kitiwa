@@ -277,3 +277,21 @@ KNOXXI_NETWORK_CODES = {
     # GLO
     '023': '003'
 }
+
+# Paga Settings
+PAGA_MERCHANT_KEY = '96caaff0-2e0c-4bb7-96b4-c1728956ea91'
+
+# Payment Providers
+MPOWER = '0'
+PAGA = '1'
+PAYMENT_PROVIDERS = (MPOWER, PAGA, )
+
+# Currencies
+GHS = '0'
+NGN = '1'
+CURRENCIES = (GHS, NGN, )
+
+PAYMENT_CURRENCY = {
+    MPOWER: GHS,
+    PAGA: NGN
+}
