@@ -18,7 +18,7 @@ from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
 from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_INVD_TOKEN_ERROR_MSG
 from kitiwa.settings import PAGA_MERCHANT_KEY
-from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN
+from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, PAYMENT_PROVIDERS
 
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
@@ -174,12 +174,18 @@ class PricingCurrent(RetrieveAPIView):
         return Response(serializer.data)
 
 
-class PricingGHS(APIView):
+class PricingLocal(APIView):
     def get(self, request, format=None):
         try:
             usd_list = request.QUERY_PARAMS.get('amount_usd')
             usd_list = usd_list.split(',')
-            ghs_conversions = {}
+            payment_type = request.QUERY_PARAMS.get('payment_type')
+            if(payment_type) not in PAYMENT_PROVIDERS:
+                return Response(
+                    {'detail': 'Invalid value for \'payment_type\''},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            local_conversions = {}
             for amount_usd in usd_list:
                 amount_usd = float(amount_usd)
                 if amount_usd != round(amount_usd, 2):
@@ -187,12 +193,14 @@ class PricingGHS(APIView):
                         {'detail': '\'amount_usd\' may not have more than 2 decimal places'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-                ghs_conversions[amount_usd] = Transaction.calculate_ghs_price(amount_usd)
-            print ghs_conversions
-            return Response(ghs_conversions)
+                local_conversions[amount_usd] = \
+                    Transaction.calculate_local_price(amount_usd, payment_type)
+            return Response(local_conversions)
         except (AttributeError, ValueError):
-            return Response({'detail': 'No valid parameter for \'amount_usd\''},
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'detail': 'Invalid parameters (required: \'amount_usd\', \'payment_type\')'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 @api_view(['POST'])
