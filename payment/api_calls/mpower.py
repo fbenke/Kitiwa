@@ -50,7 +50,9 @@ def opr_token_request(amount, mpower_phone_number,
 
         opr_token = decoded_response['token']
         invoice_token = decoded_response['invoice_token']
-    except (RequestException, KeyError) as e:
+    except KeyError as e:
+        opr_token = invoice_token = 'N/A'
+    except RequestException as e:
         message = 'ERROR - MPOWER (opr_token_request for no: {}): {}'
         log_error(message.format(mpower_phone_number, repr(e)))
         response_code = opr_token = invoice_token = 'N/A'
