@@ -14,7 +14,7 @@ class PricingAdmin(admin.ModelAdmin):
     fields = readonly_fields
 
     list_display = (
-        'start', 'end', 'ghs_usd', 'markup_cat_1', 'markup_cat_2',
+        'start', 'end', 'ghs_usd', 'ngn_usd', 'markup_cat_1', 'markup_cat_2',
         'markup_cat_3', 'markup_cat_4',
     )
 
@@ -33,8 +33,8 @@ class TransactionAdmin(admin.ModelAdmin):
     fields = readonly_fields
 
     list_display = (
-        'btc_wallet_address', 'notification_phone_number', 'state',
-        'amount_usd', 'amount_ngn',
+        'initialized_at', 'btc_wallet_address', 'notification_phone_number',
+        'state', 'amount_usd', 'amount_ngn',
     )
 
     list_display_links = ('btc_wallet_address', )

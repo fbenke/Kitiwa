@@ -1,6 +1,7 @@
 import requests
 import re
 from requests.auth import HTTPBasicAuth
+from requests import RequestException
 from kitiwa.utils import log_error
 import json
 
@@ -53,25 +54,25 @@ def _send_message(mobile_number, content):
         'Content': content,
         'RegisteredDelivery': 'true'
     }
-
-    response = requests.post(
-        SMSGH_SEND_MESSAGE,
-        data=json.dumps(payload),
-        headers=headers,
-        auth=HTTPBasicAuth(SMSGH_CLIENT_ID, SMSGH_CLIENT_SECRET)
-    )
-
-    decoded_response = response.json()
-
-    response_status = decoded_response['Status']
-
     try:
+
+        response = requests.post(
+            SMSGH_SEND_MESSAGE,
+            data=json.dumps(payload),
+            headers=headers,
+            auth=HTTPBasicAuth(SMSGH_CLIENT_ID, SMSGH_CLIENT_SECRET)
+        )
+
+        decoded_response = response.json()
+
+        response_status = decoded_response['Status']
+
         message_id = decoded_response['MessageId']
-    except KeyError:
-        message = 'ERROR - SMSGH: Failed to send message to {}. '\
-                  'Status: {}. Message: {}.'
-        log_error(message.format(mobile_number, response_status, content))
-        message_id = ''
+
+    except (RequestException, KeyError) as e:
+        message = 'ERROR - SMSGH: Failed to send message to {}.({}).'
+        log_error(message.format(mobile_number, repr(e)))
+        message_id = response_status = 'N/A'
 
     return response_status, message_id
 
@@ -83,16 +84,16 @@ def check_balance():
         'user': SMSGH_USER,
         'password': SMSGH_PASSWORD
     }
-
-    response = requests.get(
-        SMSGH_CHECK_BALANCE,
-        params=payload
-    )
-
     try:
+        response = requests.get(
+            SMSGH_CHECK_BALANCE,
+            params=payload
+        )
+
         balance = float(re.search(r'\d+.\d+', response.text).group(0))
-    except IndexError:
-        log_error('ERROR - SMSGH: Failed to check balance.')
+    except (RequestException, IndexError) as e:
+        message = 'ERROR - SMSGH: Failed to check balance ({}).'
+        log_error(message.format(repr(e)))
         return
 
     return balance

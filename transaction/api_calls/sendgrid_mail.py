@@ -28,8 +28,8 @@ def send_mail_to_admins(subject, body):
 
     try:
         sg.send(message)
-    except sendgrid.SendGridError:
-        log_error('ERROR - Sendgrid: Failed to send mail to admins.')
+    except sendgrid.SendGridError as e:
+        log_error('ERROR - Sendgrid: Failed to send mail to admins ({})'.format(e))
         pass
 
 
