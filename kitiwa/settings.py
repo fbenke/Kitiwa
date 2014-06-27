@@ -32,9 +32,9 @@ SITE_USER = 2
 # ENV to URL mapping
 ENV_SITE_MAPPING = {
     ENV_LOCAL: {
-        SITE_API: 'localhost',
-        SITE_ADMIN: 'localhost',
-        SITE_USER: 'localhost'
+        SITE_API: os.environ.get('LOCAL_SITE_API'),
+        SITE_ADMIN: os.environ.get('LOCAL_SITE_ADMIN'),
+        SITE_USER: os.environ.get('LOCAL_SITE_USER')
     },
     ENV_DEV: {
         SITE_API: 'api-dev.kitiwa.com',

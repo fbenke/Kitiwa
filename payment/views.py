@@ -1,3 +1,5 @@
+from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -9,7 +11,7 @@ from transaction.models import Transaction
 
 from kitiwa.api_calls import sendgrid_mail
 from kitiwa.settings import MPOWER_INVD_TOKEN_ERROR_MSG, MPOWER_RESPONSE_SUCCESS,\
-    MPOWER_RESPONSE_INSUFFICIENT_FUNDS, MPOWER_RESPONSE_OTHER_ERROR
+    MPOWER_RESPONSE_INSUFFICIENT_FUNDS, MPOWER_RESPONSE_OTHER_ERROR, ENV_SITE_MAPPING, ENV, SITE_USER, PAGA_MERCHANT_KEY
 
 import re
 
@@ -67,3 +69,32 @@ def opr_charge(request):
     response.data = payload
 
     return response
+
+
+@csrf_exempt
+def paga_user_callback(request):
+
+    paga_status = request.POST.get('status')
+    merchant_key = request.POST.get('key')
+    reference_number = request.POST.get('reference_number')
+    fee = request.POST.get('fee')
+    reference = request.POST.get('reference')
+    exchangeRate = request.POST.get('exchange_rate')
+    currency = request.POST.get('currency')
+    customer_account = request.POST.get('customer_account')
+    process_code = request.POST.get('process_code')
+    invoice = request.POST.get('invoice')
+    test = request.POST.get('test')
+    message = request.POST.get('message')
+    total = request.POST.get('total')
+    transaction_id = request.POST.get('transaction_id')
+
+    kitiwa_reference = request.GET.get('reference', 'error')
+
+    if paga_status == 'SUCCESS' and merchant_key == PAGA_MERCHANT_KEY:
+        if merchant_key == PAGA_MERCHANT_KEY:
+            return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'failed?error=merchantkey')
+        else:
+            return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'thanks?reference=' + kitiwa_reference)
+    else:
+        return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'failed?status=' + status)

@@ -8,10 +8,10 @@ class PricingAdmin(admin.ModelAdmin):
     readonly_fields = (
         'id', 'start', 'end', 'markup_cat_1', 'markup_cat_1_upper',
         'markup_cat_2', 'markup_cat_2_upper', 'markup_cat_3',
-        'markup_cat_3_upper', 'markup_cat_4', 'ghs_usd', 'ngn_usd',
+        'markup_cat_3_upper', 'markup_cat_4',
     )
 
-    fields = readonly_fields
+    fields = readonly_fields + ('ghs_usd', 'ngn_usd', )
 
     list_display = (
         'start', 'end', 'ghs_usd', 'ngn_usd', 'markup_cat_1', 'markup_cat_2',
