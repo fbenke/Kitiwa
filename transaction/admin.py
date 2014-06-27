@@ -22,7 +22,7 @@ class PricingAdmin(admin.ModelAdmin):
 class TransactionAdmin(admin.ModelAdmin):
 
     readonly_fields = (
-        'id', 'btc_wallet_address', 'notification_phone_number',
+        'id', 'btc_wallet_address', 
         'state', 'pricing', 'amount_usd', 'amount_ghs', 'amount_btc',
         'amount_ngn', 'payment_type', 'processed_exchange_rate',
         'transaction_uuid', 'reference_number', 'smsgh_response_status',
@@ -30,7 +30,9 @@ class TransactionAdmin(admin.ModelAdmin):
         'cancelled_at', 'declined_at'
     )
 
-    fields = readonly_fields
+    read_and_write_fields = ('notification_phone_number',)
+
+    fields = readonly_fields + read_and_write_fields
 
     list_display = (
         'initialized_at', 'btc_wallet_address', 'notification_phone_number',

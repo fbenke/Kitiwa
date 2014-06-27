@@ -1,19 +1,34 @@
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 
 from payment.api_calls import mpower
-from payment.utils import MPowerException
 
 from transaction.models import Transaction
 
+from payment import serializers
 from kitiwa.api_calls import sendgrid_mail
 from kitiwa.settings import MPOWER_INVD_TOKEN_ERROR_MSG, MPOWER_RESPONSE_SUCCESS,\
     MPOWER_RESPONSE_INSUFFICIENT_FUNDS, MPOWER_RESPONSE_OTHER_ERROR, ENV_SITE_MAPPING, ENV, SITE_USER, PAGA_MERCHANT_KEY
 
 import re
+
+
+class RetrievePayment(RetrieveAPIView):
+    serializer_class = serializers.PaymentSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        pk = self.kwargs['pk']
+        print pk
+        try:
+            self.object = Transaction.objects.select_related('mpower_payment').get(id=pk)
+        except Transaction.DoesNotExist:
+            return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(self.object.mpower_payment)
+        return Response(serializer.data)
 
 
 @api_view(['POST'])
@@ -25,8 +40,8 @@ def opr_charge(request):
         mpower_confirm_token = request.DATA.get('mpower_confirm_token')
         if not re.match(r'^[0-9]{4}$', mpower_confirm_token):
             raise ValueError('mpower_confirm_token must be a 4-digit pin')
-    except (ValueError, AttributeError):
-        raise MPowerException({'detail': 'Invalid Parameters'}, status.HTTP_400_BAD_REQUEST)
+    except (ValueError, AttributeError, TypeError):
+        return Response({'detail': 'Invalid Parameters'}, status.HTTP_400_BAD_REQUEST)
 
     # retrieve and update transaction
     try:
@@ -38,7 +53,7 @@ def opr_charge(request):
         transaction.mpower_payment.save()
 
     except Transaction.DoesNotExist:
-        raise MPowerException({'detail': 'No matching transaction found'}, status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'No matching transaction found'}, status.HTTP_400_BAD_REQUEST)
 
     response_code, response_text = mpower.opr_charge_action(
         opr_token=transaction.mpower_payment.mpower_opr_token,
