@@ -1,0 +1,2 @@
+class MPowerException(Exception):
+    pass

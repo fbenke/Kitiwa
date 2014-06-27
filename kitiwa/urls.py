@@ -31,6 +31,10 @@ urlpatterns = patterns(
         include('transaction.urls', namespace='trans')
     ),
     url(
+        r'^api/v1/payment/',
+        include('payment.urls', namespace='payment')
+    ),
+    url(
         r'^api/v1/superuser/',
         include('superuser.urls', namespace='superuser')
     ),

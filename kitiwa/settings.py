@@ -215,14 +215,35 @@ BITSTAMP_ENC_IV_BASE64 = os.environ.get('BITSTAMP_ENC_IV_BASE64')
 # Openexchangerate settings
 OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_id=dc2e5940109a49249841672fa39c7ccd'
 
-# MPower settings
+# Payment Providers
+MPOWER = '0'
+PAGA = '1'
+PAYMENT_PROVIDERS = (MPOWER, PAGA, )
+
+# Currencies
+GHS = '0'
+NGN = '1'
+CURRENCIES = (GHS, NGN, )
+
+PAYMENT_CURRENCY = {
+    MPOWER: GHS,
+    PAGA: NGN
+}
+
+# Mpower Payments
 MPOWER_ENDPOINT_OPR_TOKEN_REQUEST = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_REQUEST')
 MPOWER_ENDPOINT_OPR_TOKEN_CHARGE = os.environ.get('MPOWER_ENDPOINT_OPR_TOKEN_CHARGE')
 MPOWER_MASTER_KEY = os.environ.get('MPOWER_MASTER_KEY')
 MPOWER_PRIVATE_KEY = os.environ.get('MPOWER_PRIVATE_KEY')
 MPOWER_TOKEN = os.environ.get('MPOWER_TOKEN')
+MPOWER_RESPONSE_SUCCESS = '00'
+MPOWER_RESPONSE_INSUFFICIENT_FUNDS = '3001'
+MPOWER_RESPONSE_OTHER_ERROR = '1001'
 MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG = ('Invalid account alias')
 MPOWER_INVD_TOKEN_ERROR_MSG = ('Invalid payment request confirmation token specified')
+
+# Paga Payments
+PAGA_MERCHANT_KEY = '96caaff0-2e0c-4bb7-96b4-c1728956ea91'
 
 # Sendgrid Settings
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
@@ -276,22 +297,4 @@ KNOXXI_NETWORK_CODES = {
     '028': '002',
     # GLO
     '023': '003'
-}
-
-# Paga Settings
-PAGA_MERCHANT_KEY = '96caaff0-2e0c-4bb7-96b4-c1728956ea91'
-
-# Payment Providers
-MPOWER = '0'
-PAGA = '1'
-PAYMENT_PROVIDERS = (MPOWER, PAGA, )
-
-# Currencies
-GHS = '0'
-NGN = '1'
-CURRENCIES = (GHS, NGN, )
-
-PAYMENT_CURRENCY = {
-    MPOWER: GHS,
-    PAGA: NGN
 }

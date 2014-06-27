@@ -62,19 +62,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class TransactionOprChargeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Transaction
-        fields = ('transaction_uuid', 'mpower_confirm_token',)
-
-    def validate_mpower_confirm_token(self, attrs, source):
-        if not re.match(r'^[0-9]{4}$', attrs[source]):
-            raise serializers.ValidationError(
-                'must be a 4-digit pin'
-            )
-        return attrs
-
-
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing

@@ -3,14 +3,16 @@ from django.utils import timezone
 
 from transaction.models import Transaction
 
+from kitiwa.settings import MPOWER_RESPONSE_SUCCESS
+
 from payment.api_calls import mpower
 
 
 class MPowerPayment(models.Model):
 
-    transaction = models.ForeignKey(
+    transaction = models.OneToOneField(
         Transaction,
-        related_name='mpower_payments',
+        related_name='mpower_payment',
         help_text='Transaction associated with this payment'
     )
 
@@ -62,7 +64,7 @@ class MPowerPayment(models.Model):
 
         success = False
 
-        if response_code == '00':
+        if response_code == MPOWER_RESPONSE_SUCCESS:
             self.mpower_opr_token = opr_token
             self.mpower_invoice_token = invoice_token
             success = True
@@ -85,7 +87,7 @@ class MPowerPayment(models.Model):
         self.mpower_response_code = response_code
         self.mpower_response_text = response_text
 
-        if response_code == '00':
+        if response_code == MPOWER_RESPONSE_SUCCESS:
             self.transaction.state = Transaction.PAID
             self.transaction.paid_at = timezone.now()
 
@@ -93,4 +95,5 @@ class MPowerPayment(models.Model):
             self.transaction.state = Transaction.DECLINED
             self.transaction.declined_at = timezone.now()
 
+        self.transaction.save()
         self.save()

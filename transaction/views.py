@@ -13,24 +13,24 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from kitiwa.settings import BITCOIN_NOTE
-from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
-from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
-from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_INVD_TOKEN_ERROR_MSG
-from kitiwa.settings import PAGA_MERCHANT_KEY
-from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, PAYMENT_PROVIDERS
-
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
-from transaction.api_calls import sendgrid_mail, smsgh, knoxxi
-from payment.api_calls import mpower
+from transaction.api_calls import smsgh, knoxxi
+
 from transaction import serializers
 from transaction import permissions
 from transaction import utils
 from transaction.utils import AcceptException
 
 from payment.models import MPowerPayment
+
+from kitiwa.settings import BITCOIN_NOTE
+from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
+from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
+from kitiwa.settings import PAGA_MERCHANT_KEY
+from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, PAYMENT_PROVIDERS
+from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_RESPONSE_OTHER_ERROR
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -66,7 +66,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             if payment_type == MPOWER:
                 mpower_response = MPowerPayment.opr_token_response(transaction_id)
                 response.data['mpower_response'] = mpower_response
-                if mpower_response['response_code'] == '1001':
+                if mpower_response['response_code'] == MPOWER_RESPONSE_OTHER_ERROR:
                     if mpower_response['response_text'].find(MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG) != -1:
                         response.status_code = status.HTTP_400_BAD_REQUEST
                     else:
@@ -100,60 +100,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 obj.state = Transaction.INVALID
                 obj.declined_at = timezone.now()
                 obj.save()
-
-
-class TransactionOprCharge(APIView):
-
-    def put(self, request, format=None):
-        try:
-            transaction_uuid = request.DATA.get('transaction_uuid')
-            transaction = Transaction.objects.get(
-                transaction_uuid=transaction_uuid,
-                state__in=[Transaction.INIT, Transaction.DECLINED]
-            )
-            serializer = serializers.TransactionOprChargeSerializer(
-                transaction, data=request.DATA
-            )
-        except Transaction.DoesNotExist:
-            return Response(
-                {'detail': 'No matching transaction found'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if serializer.is_valid():
-            serializer.save()
-
-            response_code, response_text = mpower.opr_charge_action(
-                opr_token=transaction.mpower_opr_token,
-                confirm_token=serializer.data['mpower_confirm_token']
-            )
-
-            transaction = Transaction.objects.get(id=transaction.id)
-
-            transaction.update_after_opr_charge(
-                response_code=response_code,
-                response_text=response_text
-            )
-
-            response = Response()
-
-            payload = {
-                'mpower_response_code': response_code,
-                'mpower_response_text': response_text,
-            }
-
-            if response_code == '00':
-                sendgrid_mail.notify_admins_paid()
-            elif (response_code == '3001') or\
-                 (response_code == '1001' and response_text.find(MPOWER_INVD_TOKEN_ERROR_MSG) != -1):
-                response.status_code = status.HTTP_400_BAD_REQUEST
-            else:
-                response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-
-            response.data = payload
-
-            return response
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PricingViewSet(viewsets.ModelViewSet):

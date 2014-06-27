@@ -34,7 +34,6 @@ def send_mail_to_admins(subject, body):
 
 
 def notify_admins_paid():
-
     if not NOTIFY_ADMIN_PAID:
         return
 

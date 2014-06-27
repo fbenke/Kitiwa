@@ -81,7 +81,7 @@ def opr_charge_action(opr_token, confirm_token):
         response_code = decoded_response['response_code']
         response_text = decoded_response['response_text']
 
-    except (RequestException, KeyError) as e:
+    except RequestException as e:
         message = 'ERROR - MPOWER (opr_charge_action for token {}): {}'
         log_error(message.format(opr_token, repr(e)))
         response_code = "N/A"
