@@ -216,6 +216,7 @@ def accept(request):
                     btc_transfer_request_error = True
                 else:
                     transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
+
                     combined_sms_confirm, combined_sms_topup = \
                         utils.consolidate_notification_sms(transactions)
 
