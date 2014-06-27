@@ -16,7 +16,7 @@ def direct_top_up(mobile_number, amount, action='14', offset='0'):
     timestamp = str(int(time.time() * 1000))
 
     network = KNOXXI_NETWORK_CODES[mobile_number[0:3]]
-    mobile_number = '+233{}'.format(mobile_number[1::])
+    # mobile_number = '+233{}'.format(mobile_number[1::])
 
     to_encrypt = '{}{}{}{}{}{}'.format(
         KNOXXI_USER_NAME, network, KNOXXI_API_KEY, action,

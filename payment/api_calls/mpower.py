@@ -21,6 +21,9 @@ def _create_headers():
 def opr_token_request(amount, mpower_phone_number,
                       invoice_desc='', store_name='Kitiwa'):
 
+    # convert to local phone number format
+    mpower_phone_number = '0{}'.format(mpower_phone_number[4::])
+
     payload = {
         'invoice_data': {
             'invoice': {

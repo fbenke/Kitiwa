@@ -5,7 +5,8 @@ from rest_framework import serializers
 from transaction.models import Transaction, Pricing
 from transaction.utils import is_valid_btc_address
 
-from kitiwa.settings import MAXIMUM_AMOUNT_BTC_BUYING, PAYMENT_PROVIDERS
+from kitiwa.settings import MAXIMUM_AMOUNT_BTC_BUYING, PAYMENT_PROVIDERS,\
+    DIAL_CODES, PAYMENT_DIAL_CODE
 
 
 class TransactionSerializer(serializers.ModelSerializer):
@@ -38,9 +39,12 @@ class TransactionSerializer(serializers.ModelSerializer):
         return attrs
 
     def validate_notification_phone_number(self, attrs, source):
-        if not re.match(r'^[0-9]{10,15}$', attrs[source]):
+        if not re.match(r'^\+[0-9]{12,17}$', attrs[source]):
             raise serializers.ValidationError(
-                'phone number must be 10 - 15 numeric characters')
+                'invalid format')
+        if attrs[source][0:4] not in DIAL_CODES:
+            raise serializers.ValidationError(
+                'invalid dialing code')
         return attrs
 
     def validate_amount_usd(self, attrs, source):
@@ -58,6 +62,14 @@ class TransactionSerializer(serializers.ModelSerializer):
         if attrs[source] not in PAYMENT_PROVIDERS:
             raise serializers.ValidationError(
                 'unknown payment provider'
+            )
+        return attrs
+
+    def validate(self, attrs):
+        if (PAYMENT_DIAL_CODE[attrs['payment_type']] !=
+                attrs['notification_phone_number'][0:4]):
+            raise serializers.ValidationError(
+                'dial code and payment type mismatch'
             )
         return attrs
 
