@@ -254,7 +254,8 @@ class Transaction(models.Model):
     def _set_local_price(self):
         if self.payment_type not in PAYMENT_PROVIDERS:
             return
-        local_price = Transaction.calculate_local_price(self.amount_usd, self.payment_type)
+        currency = PAYMENT_CURRENCY[self.payment_type]
+        local_price = Transaction.calculate_local_price(self.amount_usd, currency)
         if self.payment_type == MPOWER:
             self.amount_ghs = local_price
         elif self.payment_type == PAGA:
@@ -264,8 +265,7 @@ class Transaction(models.Model):
         self.reference_number = str(random.randint(10000, 999999))
 
     @staticmethod
-    def calculate_local_price(amount_usd, payment_type):
-        currency = PAYMENT_CURRENCY[payment_type]
+    def calculate_local_price(amount_usd, currency):
         unit_price = Pricing.get_current_pricing().get_unit_price(amount_usd, currency)
         return math.floor(amount_usd * unit_price * 10) / 10
 

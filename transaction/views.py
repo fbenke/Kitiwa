@@ -29,7 +29,7 @@ from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
 from kitiwa.settings import PAGA_MERCHANT_KEY
-from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, PAYMENT_PROVIDERS
+from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
 from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_RESPONSE_OTHER_ERROR
 
 
@@ -125,26 +125,31 @@ class PricingLocal(APIView):
         try:
             usd_list = request.QUERY_PARAMS.get('amount_usd')
             usd_list = usd_list.split(',')
-            payment_type = request.QUERY_PARAMS.get('payment_type')
-            if(payment_type) not in PAYMENT_PROVIDERS:
-                return Response(
-                    {'detail': 'Invalid value for \'payment_type\''},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            currency_list = request.QUERY_PARAMS.get('currency')
+            currency_list = currency_list.split(',')
+
             local_conversions = {}
-            for amount_usd in usd_list:
-                amount_usd = float(amount_usd)
-                if amount_usd != round(amount_usd, 2):
+            for currency in currency_list:
+                if(currency) not in CURRENCIES:
                     return Response(
-                        {'detail': '\'amount_usd\' may not have more than 2 decimal places'},
+                        {'detail': 'Invalid parameters'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-                local_conversions[amount_usd] = \
-                    Transaction.calculate_local_price(amount_usd, payment_type)
+                conversion = {}
+                for amount_usd in usd_list:
+                    amount_usd = float(amount_usd)
+                    if amount_usd != round(amount_usd, 2):
+                        return Response(
+                            {'detail': 'Invalid parameters'},
+                            status=status.HTTP_400_BAD_REQUEST
+                        )
+                    conversion[amount_usd] = \
+                        Transaction.calculate_local_price(amount_usd, currency)
+                local_conversions[currency] = conversion
             return Response(local_conversions)
         except (AttributeError, ValueError):
             return Response(
-                {'detail': 'Invalid parameters (required: \'amount_usd\', \'payment_type\')'},
+                {'detail': 'Invalid parameters'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 

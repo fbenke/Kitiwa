@@ -4,7 +4,7 @@ from transaction.models import Pricing, Transaction
 
 
 class PricingAdmin(admin.ModelAdmin):
-    
+
     readonly_fields = (
         'id', 'start', 'end', 'markup_cat_1', 'markup_cat_1_upper',
         'markup_cat_2', 'markup_cat_2_upper', 'markup_cat_3',
@@ -34,7 +34,7 @@ class TransactionAdmin(admin.ModelAdmin):
 
     list_display = (
         'initialized_at', 'btc_wallet_address', 'notification_phone_number',
-        'state', 'amount_usd', 'amount_ngn',
+        'state', 'amount_usd',
     )
 
     list_display_links = ('btc_wallet_address', )
