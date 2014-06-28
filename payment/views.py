@@ -106,10 +106,11 @@ def paga_user_callback(request):
 
     kitiwa_reference = request.GET.get('reference', 'error')
 
-    if paga_status == 'SUCCESS' and merchant_key == PAGA_MERCHANT_KEY:
-        if merchant_key == PAGA_MERCHANT_KEY:
+    if paga_status == 'SUCCESS':
+        if merchant_key != PAGA_MERCHANT_KEY:
             return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'failed?error=merchantkey')
         else:
-            return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'thanks?reference=' + kitiwa_reference)
+            return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'thanks?reference=' + kitiwa_reference +
+                            '&pagaTransactionId=' + transaction_id)
     else:
         return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'failed?status=' + status)
