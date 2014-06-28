@@ -1,0 +1,2 @@
+class PagaException(Exception):
+    pass

@@ -255,6 +255,7 @@ MPOWER_INVD_TOKEN_ERROR_MSG = ('Invalid payment request confirmation token speci
 
 # Paga Payments
 PAGA_MERCHANT_KEY = '96caaff0-2e0c-4bb7-96b4-c1728956ea91'
+PAGA_PRIVATE_KEY = os.environ.get('PAGA_PRIVATE_KEY')
 
 # Sendgrid Settings
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME')
