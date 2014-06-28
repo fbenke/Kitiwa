@@ -16,7 +16,7 @@ from kitiwa.api_calls import sendgrid_mail
 from kitiwa.utils import log_error
 from kitiwa.settings import MPOWER_INVD_TOKEN_ERROR_MSG, MPOWER_RESPONSE_SUCCESS,\
     MPOWER_RESPONSE_INSUFFICIENT_FUNDS, MPOWER_RESPONSE_OTHER_ERROR,\
-    ENV_SITE_MAPPING, ENV, SITE_USER
+    ENV_SITE_MAPPING, ENV, SITE_USER, ENV_LOCAL
 from kitiwa.settings import PAGA_MERCHANT_KEY, PAGA_PRIVATE_KEY
 
 from django.utils import timezone
@@ -181,11 +181,15 @@ def paga_user_callback(request):
 
     kitiwa_reference = request.GET.get('reference', 'error')
 
+    http_prefix = 'https://'
+    if ENV == ENV_LOCAL:
+        http_prefix = 'http://'
+
     if paga_status == 'SUCCESS':
         if merchant_key != PAGA_MERCHANT_KEY:
-            return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'failed?error=merchantkey')
+            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=merchantkey')
         else:
-            return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'thanks?reference=' + kitiwa_reference +
+            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/thanks?reference=' + kitiwa_reference +
                             '&pagaTransactionId=' + transaction_id)
     else:
-        return redirect(ENV_SITE_MAPPING[ENV][SITE_USER] + 'failed?status=' + status)
+        return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?status=' + status)
