@@ -62,6 +62,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             elif PAYMENT_CURRENCY[payment_type] == NGN:
                 response.data['amount_ngn'] = amount_ngn
 
+
             # additional modifications for mpower payments
             if payment_type == MPOWER:
                 mpower_response = MPowerPayment.opr_token_response(transaction_id)
