@@ -1,20 +1,20 @@
 from django.conf.urls import patterns, url
 from rest_framework.urlpatterns import format_suffix_patterns
-from payment import views
+from payment.views import general
 
 
 urlpatterns = patterns(
     '',
 
     # payments
-    url(r'^(?P<pk>[0-9]+)/$', views.RetrievePayment.as_view(), name='payment-detail'),
+    url(r'^(?P<pk>[0-9]+)/$', general.RetrievePayment.as_view(), name='payment-detail'),
 
     # mpower
-    url(r'^mpower/$', 'payment.views.mpower_opr_charge', name='mpower-charge'),
+    url(r'^mpower/$', 'payment.views.mpower.opr_charge', name='mpower-charge'),
 
     # paga
-    url(r'^paga/backendcallback/$', 'payment.views.paga_payment_notification', name='paga-backend-callback'),
-    url(r'^paga/usercallback/$', 'payment.views.paga_user_callback', name='paga-user-callback'),
+    url(r'^paga/backendcallback/$', 'payment.views.paga.backend_callback', name='paga-backend-callback'),
+    url(r'^paga/usercallback/$', 'payment.views.paga.user_callback', name='paga-user-callback'),
 
 )
 

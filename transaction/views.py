@@ -62,7 +62,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
             elif PAYMENT_CURRENCY[payment_type] == NGN:
                 response.data['amount_ngn'] = amount_ngn
 
-
             # additional modifications for mpower payments
             if payment_type == MPOWER:
                 mpower_response = MPowerPayment.opr_token_response(transaction_id)
@@ -89,7 +88,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     def post_save(self, obj, created=False):
 
-        # TODO: is there a better way to do this?
         if obj.payment_type == MPOWER:
             mpower_payment = MPowerPayment()
             mpower_payment.transaction = obj
