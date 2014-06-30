@@ -35,26 +35,26 @@ def backend_callback(request):
         # find transaction
         transaction = Transaction.objects.get(transaction_uuid=invoice)
         if transaction.state != Transaction.INIT:
-            message = 'ERROR - PAGA: request refers to transaction in state {}'
-            message = message.format(transaction.state)
+            message = 'ERROR - PAGA (backend): request refers to transaction {} in state {}. {}'
+            message = message.format(transaction.id, transaction.state, request.DATA)
             raise PagaException
 
         # validate merchant key
         if merchant_key != PAGA_MERCHANT_KEY:
-            message = 'ERROR - PAGA: request with invalid merchant key ({})'
-            message = message.format(merchant_key)
+            message = 'ERROR - PAGA (backend): request with invalid merchant key ({}) for transaction {}. {}'
+            message = message.format(merchant_key, transaction.id, request.DATA)
             raise PagaException
 
         # validate private key
         if notification_private_key != PAGA_PRIVATE_KEY:
-            message = 'ERROR - PAGA: request with invalid private key ({})'
-            message = message.format(notification_private_key)
+            message = 'ERROR - PAGA (backend): request with invalid private key ({}) for transaction {}. {}'
+            message = message.format(notification_private_key, transaction.id, request.DATA)
             raise PagaException
 
         # double check amount
         if amount != transaction.amount_ngn:
-            message = 'ERROR - PAGA: amount in request does not match database value (db: {}, paga: {})'
-            message = message.format(transaction.amount_ngn, amount)
+            message = 'ERROR - PAGA (backend): amount for transaction {} does not match database value (db: {}, paga: {}). {}'
+            message = message.format(transaction.id, transaction.amount_ngn, amount, request.DATA)
             raise PagaException
 
         # create PagaPayment
@@ -74,15 +74,15 @@ def backend_callback(request):
         return Response({'detail': 'Success'})
 
     except Transaction.DoesNotExist as e:
-        message = 'ERROR - PAGA: no transaction found for uuid {}, {}'
-        log_error(message.format(invoice, e))
+        message = 'ERROR - PAGA (backend): no transaction found for uuid {}, {}. {}'
+        log_error(message.format(invoice, e, request.DATA))
 
     except PagaException as e:
         log_error(message)
 
     except (KeyError, TypeError) as e:
-        message = 'ERROR - PAGA: received invalid payment notification, {}, {}'
-        log_error(message.format(request.DATA, e))
+        message = 'ERROR - PAGA (backend): received invalid payment notification, {}, {}'
+        log_error(message.format(e, request.DATA))
 
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
 
@@ -92,18 +92,20 @@ def user_callback(request):
 
     paga_status = request.POST.get('status')
     merchant_key = request.POST.get('key')
-    reference_number = request.POST.get('reference_number')
-    fee = request.POST.get('fee')
-    reference = request.POST.get('reference')
-    exchangeRate = request.POST.get('exchange_rate')
-    currency = request.POST.get('currency')
-    customer_account = request.POST.get('customer_account')
+    transaction_id = request.POST.get('transaction_id')
     process_code = request.POST.get('process_code')
     invoice = request.POST.get('invoice')
-    test = request.POST.get('test')
-    message = request.POST.get('message')
     total = request.POST.get('total')
-    transaction_id = request.POST.get('transaction_id')
+
+    # not needed for now
+    # fee = request.POST.get('fee')
+    # test = request.POST.get('test')
+    # message = request.POST.get('message')
+    # exchangeRate = request.POST.get('exchange_rate')
+    # reference_number = request.POST.get('reference_number')
+    # currency = request.POST.get('currency')
+    # reference = request.POST.get('reference')
+    # customer_account = request.POST.get('customer_account')
 
     kitiwa_reference = request.GET.get('reference', 'error')
 

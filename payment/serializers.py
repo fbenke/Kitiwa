@@ -30,4 +30,4 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ('id', 'mpower_payment', 'paga_payment')
+        fields = ('id', 'payment_type', 'mpower_payment', 'paga_payment')
