@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.db import transaction as dbtransaction
 
 
+# TODO: make this a background task
 @api_view(['POST'])
 def backend_callback(request):
 

@@ -1,6 +1,5 @@
 from django.db import models
 from django.db import transaction as dbtransaction
-from django.utils.datetime_safe import datetime
 
 from transaction.models import Transaction
 
@@ -80,21 +79,27 @@ class MPowerPayment(models.Model):
         }
         return response
 
-    def update_after_opr_charge(self, response_code, response_text):
+    def opr_charge(self, mpower_confirm_token):
+
+        self.mpower_confirm_token = mpower_confirm_token
+
+        response_code, response_text = mpower.opr_charge_action(
+            opr_token=self.mpower_opr_token,
+            confirm_token=mpower_confirm_token
+        )
 
         self.mpower_response_code = response_code
         self.mpower_response_text = response_text
 
-        if response_code == MPOWER_RESPONSE_SUCCESS:
-            self.transaction.state = Transaction.PAID
-            self.transaction.paid_at = datetime.utcnow()
+        with dbtransaction.atomic():
+            if response_code == MPOWER_RESPONSE_SUCCESS:
+                self.transaction.set_paid()
+            else:
+                self.transaction.set_declined()
 
-        else:
-            self.transaction.state = Transaction.DECLINED
-            self.transaction.declined_at = datetime.utcnow()
+            self.save()
 
-        self.transaction.save()
-        self.save()
+        return response_code, response_text
 
 
 class PagaPayment(models.Model):

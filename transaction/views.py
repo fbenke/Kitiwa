@@ -253,7 +253,7 @@ class PricingLocal(APIView):
                         Transaction.calculate_local_price(amount_usd, currency)
                 local_conversions[currency] = conversion
             return Response(local_conversions)
-        except (AttributeError):
+        except (AttributeError, ValueError, PricingException):
             return Response(
                 {'detail': 'Invalid parameters'},
                 status=status.HTTP_400_BAD_REQUEST
