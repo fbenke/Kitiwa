@@ -19,7 +19,7 @@ class PagaSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.PagaPayment
         read_only_fields = (
-            'paga_transaction_reference', 'paga_transaction_id', 'processed_at',
+            'paga_transaction_reference', 'paga_transaction_id', 'processed_at', 'status'
         )
         fields = read_only_fields
 
@@ -30,4 +30,4 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ('id', 'payment_type', 'mpower_payment', 'paga_payment')
+        fields = ('payment_type', 'mpower_payment', 'paga_payment')

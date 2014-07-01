@@ -126,3 +126,10 @@ class PagaPayment(models.Model):
         null=True,
         help_text='datetime sent by paga'
     )
+
+    status = models.CharField(
+        'satus sent by paga',
+        max_length=30,
+        blank=True,
+        help_text='satus sent by paga',
+    )

@@ -60,12 +60,14 @@ def backend_callback(request):
         # create PagaPayment
         paga_payment = PagaPayment(
             transaction=transaction, paga_transaction_reference=transaction_reference,
-            paga_transaction_id=transaction_id, processed_at=transaction_datetime)
+            paga_transaction_id=transaction_id, processed_at=transaction_datetime, status='SUCCESS')
+
+        # update transaction
+        transaction.state = Transaction.PAID
+        transaction.paid_at = timezone.now()
 
         # update transaction and paga payment (all-or-nothing)
         with dbtransaction.atomic():
-            transaction.state = Transaction.PAID
-            transaction.paid_at = timezone.now()
             transaction.save()
             paga_payment.save()
 
@@ -95,7 +97,9 @@ def user_callback(request):
     transaction_id = request.POST.get('transaction_id')
     process_code = request.POST.get('process_code')
     invoice = request.POST.get('invoice')
-    total = request.POST.get('total')
+
+    # could be used for double checking the value
+    # total = request.POST.get('total')
 
     # not needed for now
     # fee = request.POST.get('fee')
@@ -120,4 +124,21 @@ def user_callback(request):
             return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/thanks?reference=' + kitiwa_reference +
                             '&pagaTransactionId=' + transaction_id)
     else:
+        # TODO: put this in messaging queue
+        try:
+            transaction = Transaction.objects.get(transaction_uuid=invoice)
+            paga_payment = PagaPayment(
+                transaction=transaction, paga_transaction_reference=process_code,
+                paga_transaction_id=transaction_id, status=paga_status)
+            transaction.state = Transaction.DECLINED
+            transaction.declined_at = timezone.now()
+            with dbtransaction.atomic():
+                transaction.save()
+                paga_payment.save()
+
+        except Exception:
+            pass
         return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?status=' + status)
+
+
+

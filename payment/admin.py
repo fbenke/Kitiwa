@@ -18,7 +18,7 @@ class MPowerAdmin(admin.ModelAdmin):
 class PagaAdmin(admin.ModelAdmin):
     fields = (
         'id', 'transaction', 'paga_transaction_reference',
-        'paga_transaction_id', 'processed_at'
+        'paga_transaction_id', 'processed_at', 'status'
     )
 
     readonly_fields = fields
