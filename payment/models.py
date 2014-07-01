@@ -1,5 +1,6 @@
 from django.db import models
-from django.utils import timezone
+from django.db import transaction as dbtransaction
+from django.utils.datetime_safe import datetime
 
 from transaction.models import Transaction
 
@@ -61,17 +62,14 @@ class MPowerPayment(models.Model):
 
         self.mpower_response_code = response_code
         self.mpower_response_text = response_text
+        self.mpower_opr_token = opr_token
+        self.mpower_invoice_token = invoice_token
 
-        success = False
+        with dbtransaction.atomic():
+            if response_code != MPOWER_RESPONSE_SUCCESS:
+                self.transaction.set_invalid()
 
-        if response_code == MPOWER_RESPONSE_SUCCESS:
-            self.mpower_opr_token = opr_token
-            self.mpower_invoice_token = invoice_token
-            success = True
-
-        self.save()
-
-        return success
+            self.save()
 
     @staticmethod
     def opr_token_response(transaction_id):
@@ -89,11 +87,11 @@ class MPowerPayment(models.Model):
 
         if response_code == MPOWER_RESPONSE_SUCCESS:
             self.transaction.state = Transaction.PAID
-            self.transaction.paid_at = timezone.now()
+            self.transaction.paid_at = datetime.utcnow()
 
         else:
             self.transaction.state = Transaction.DECLINED
-            self.transaction.declined_at = timezone.now()
+            self.transaction.declined_at = datetime.utcnow()
 
         self.transaction.save()
         self.save()

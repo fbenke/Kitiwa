@@ -34,17 +34,16 @@ class TransactionSerializer(serializers.ModelSerializer):
 
         if not is_valid_btc_address(attrs[source]):
             raise serializers.ValidationError(
-                'this is not a valid bitcoin address')
+                'this is not a valid bitcoin address'
+            )
 
         return attrs
 
     def validate_notification_phone_number(self, attrs, source):
         if not re.match(r'^\+[0-9]{12,17}$', attrs[source]):
-            raise serializers.ValidationError(
-                'invalid format')
+            raise serializers.ValidationError('invalid format')
         if attrs[source][0:4] not in DIAL_CODES:
-            raise serializers.ValidationError(
-                'invalid dialing code')
+            raise serializers.ValidationError('invalid dialing code')
         return attrs
 
     def validate_amount_usd(self, attrs, source):
@@ -77,12 +76,15 @@ class TransactionSerializer(serializers.ModelSerializer):
 class PricingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pricing
+
         read_and_write_fields = (
             'markup_cat_1', 'markup_cat_1_upper', 'markup_cat_2',
             'markup_cat_2_upper', 'markup_cat_3', 'markup_cat_3_upper',
             'markup_cat_4', 'ghs_usd', 'ngn_usd'
         )
+
         read_only_fields = ('start', 'end',)
+
         fields = read_and_write_fields + read_only_fields
 
     def validate(self, attrs):
@@ -91,7 +93,8 @@ class PricingSerializer(serializers.ModelSerializer):
                 < attrs['markup_cat_3_upper']
         ):
             raise serializers.ValidationError(
-                'each upper bound must be greater than the previous one')
+                'each upper bound must be greater than the previous one'
+            )
         return attrs
 
     def validate_markup_cat_1(self, attrs, source):

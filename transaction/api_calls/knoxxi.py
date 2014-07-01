@@ -5,8 +5,6 @@ from kitiwa.utils import log_error
 from kitiwa.settings import KNOXXI_TOP_UP_ENABLED, KNOXXI_USER_NAME,\
     KNOXXI_API_KEY, KNOXXI_BASE_URL, KNOXXI_NETWORK_CODES, proxies
 
-# TODO: If this will ever be used again, refactor it!
-
 
 def direct_top_up(mobile_number, amount, action='14', offset='0'):
 
@@ -42,6 +40,7 @@ def direct_top_up(mobile_number, amount, action='14', offset='0'):
         proxies=proxies
     )
 
+    # TODO: add RequestException and improve logging
     try:
         response_code = response.text[0:2]
         if response_code != '00':

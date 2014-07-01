@@ -146,3 +146,7 @@ def get_bcaddress_version(str_address):
 
 class AcceptException(Exception):
     pass
+
+
+class PricingException(Exception):
+    pass

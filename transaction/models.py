@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.utils import timezone
+from django.utils.datetime_safe import datetime
 
 from kitiwa.settings import ONE_SATOSHI, GHS, NGN, PAGA, MPOWER, CURRENCIES, \
     PAYMENT_PROVIDERS, PAYMENT_CURRENCY
@@ -73,6 +73,9 @@ class Pricing(models.Model):
         help_text='Amount of NGN you get for 1 USD'
     )
 
+    def __unicode__(self):
+        return '{}'.format(self.id)
+
     @staticmethod
     def get_current_pricing():
         return Pricing.objects.get(end__isnull=True)
@@ -81,7 +84,7 @@ class Pricing(models.Model):
     def end_previous_pricing():
         try:
             previous_pricing = Pricing.objects.get(end__isnull=True)
-            previous_pricing.end = timezone.now()
+            previous_pricing.end = datetime.utcnow()
             previous_pricing.save()
         except ObjectDoesNotExist:
             log_error('ERROR - Failed to end previous pricing.')
@@ -109,9 +112,6 @@ class Pricing(models.Model):
             markup = self.markup_cat_4
 
         return math.floor(exchange_rate * (1 + markup) * 10) / 10
-
-    def __unicode__(self):
-        return '{}'.format(self.id)
 
 
 class Transaction(models.Model):
@@ -283,6 +283,21 @@ class Transaction(models.Model):
             super(Transaction, self).save(*args, **kwargs)
         else:
             raise ValidationError('Invalid BTC address')
+
+    def set_invalid(self):
+        self.state = Transaction.INVALID
+        self.declined_at = datetime.utcnow()
+        self.save()
+
+    def set_declined(self):
+        self.state = Transaction.DECLINED
+        self.declined_at = datetime.utcnow()
+        self.save()
+
+    def set_paid(self):
+        self.state = Transaction.PAID
+        self.paid_at = datetime.utcnow()
+        self.save()
 
     def update_btc(self, rate):
         self.amount_btc = int(math.ceil((self.amount_usd / rate) * ONE_SATOSHI))

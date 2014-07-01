@@ -1,6 +1,5 @@
 from django.db import transaction as dbtransaction
 from django.utils.datetime_safe import datetime
-from django.utils import timezone
 
 import requests
 
@@ -21,13 +20,13 @@ from transaction.api_calls import smsgh, knoxxi
 from transaction import serializers
 from transaction import permissions
 from transaction import utils
-from transaction.utils import AcceptException
+from transaction.utils import AcceptException, PricingException
 
 from payment.models import MPowerPayment
 
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
-from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED
+from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED, KNOXXI_MINUMUM_AMOUNT
 from kitiwa.settings import PAGA_MERCHANT_KEY
 from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
 from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_RESPONSE_OTHER_ERROR
@@ -39,6 +38,16 @@ class TransactionViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TransactionSerializer
     permission_classes = (permissions.IsAdminOrPostOnly,)
     throttle_classes = (AnonRateThrottle,)
+
+    def post_save(self, obj, created=False):
+
+        # initialize opr token request
+        if obj.payment_type == MPOWER:
+            mpower_payment = MPowerPayment()
+            mpower_payment.transaction = obj
+            mpower_payment.opr_token_request(
+                obj.notification_phone_number, obj.amount_ghs
+            )
 
     def create(self, request, *args, **kwargs):
         response = super(viewsets.ModelViewSet, self).create(
@@ -62,7 +71,7 @@ class TransactionViewSet(viewsets.ModelViewSet):
             elif PAYMENT_CURRENCY[payment_type] == NGN:
                 response.data['amount_ngn'] = amount_ngn
 
-            # additional modifications for mpower payments
+            # payment-provider specific information
             if payment_type == MPOWER:
                 mpower_response = MPowerPayment.opr_token_response(transaction_id)
                 response.data['mpower_response'] = mpower_response
@@ -85,20 +94,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
         if state is not None:
             queryset = queryset.filter(state=state)
         return queryset
-
-    def post_save(self, obj, created=False):
-
-        if obj.payment_type == MPOWER:
-            mpower_payment = MPowerPayment()
-            mpower_payment.transaction = obj
-            success = mpower_payment.opr_token_request(
-                obj.notification_phone_number, obj.amount_ghs
-            )
-
-            if not success:
-                obj.state = Transaction.INVALID
-                obj.declined_at = timezone.now()
-                obj.save()
 
 
 @api_view(['POST'])
@@ -185,11 +180,12 @@ def accept(request):
                             )
 
                     # top up account
+                    # TODO: refactor this if it is ever needed again
                     if KNOXXI_TOP_UP_ENABLED:
                         for number, amount in combined_sms_topup.iteritems():
                             topup = round(amount * KNOXXI_TOPUP_PERCENTAGE, 2)
 
-                            if topup > 0.20:
+                            if topup > KNOXXI_MINUMUM_AMOUNT:
                                 success = knoxxi.direct_top_up(
                                     mobile_number=number,
                                     amount=topup
@@ -246,12 +242,12 @@ class PricingLocal(APIView):
             local_conversions = {}
             for currency in currency_list:
                 if(currency) not in CURRENCIES:
-                    raise AttributeError
+                    raise PricingException
                 conversion = {}
                 for amount_usd in usd_list:
                     amount_usd = float(amount_usd)
                     if amount_usd != round(amount_usd, 2):
-                        raise AttributeError
+                        raise PricingException
 
                     conversion[amount_usd] = \
                         Transaction.calculate_local_price(amount_usd, currency)

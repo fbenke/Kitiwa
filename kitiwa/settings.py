@@ -293,6 +293,7 @@ KNOXXI_BASE_URL = 'http://www.corenett.net/Tycoon2/TransactionManager'
 KNOXXI_USER_NAME = os.environ.get('KNOXXI_USER_NAME')
 KNOXXI_API_KEY = os.environ.get('KNOXXI_API_KEY')
 KNOXXI_TOPUP_PERCENTAGE = 0.01
+KNOXXI_MINUMUM_AMOUNT = 0.20
 KNOXXI_NETWORK_CODES = {
     # Tigo
     '027': '005',
