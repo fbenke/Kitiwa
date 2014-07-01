@@ -40,9 +40,6 @@ def send_message_topup(mobile_number, topup):
 
 def _send_message(mobile_number, content):
 
-    # convert phone number to match expected format by smsgh
-    # mobile_number = '+233{}'.format(mobile_number[1::])
-
     headers = {
         'content-type': 'application/json',
         'Host': 'api.smsgh.com'

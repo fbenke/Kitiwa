@@ -101,58 +101,6 @@ class TransactionViewSet(viewsets.ModelViewSet):
                 obj.save()
 
 
-class PricingViewSet(viewsets.ModelViewSet):
-    serializer_class = serializers.PricingSerializer
-    permission_classes = (IsAdminUser,)
-    queryset = Pricing.objects.filter()
-
-    def pre_save(self, obj):
-        Pricing.end_previous_pricing()
-
-
-class PricingCurrent(RetrieveAPIView):
-    serializer_class = serializers.PricingSerializer
-
-    def retrieve(self, request, *args, **kwargs):
-        self.object = Pricing.objects.get(end__isnull=True)
-        serializer = self.get_serializer(self.object)
-        return Response(serializer.data)
-
-
-class PricingLocal(APIView):
-    def get(self, request, format=None):
-        try:
-            usd_list = request.QUERY_PARAMS.get('amount_usd')
-            usd_list = usd_list.split(',')
-            currency_list = request.QUERY_PARAMS.get('currency')
-            currency_list = currency_list.split(',')
-
-            local_conversions = {}
-            for currency in currency_list:
-                if(currency) not in CURRENCIES:
-                    return Response(
-                        {'detail': 'Invalid parameters'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                conversion = {}
-                for amount_usd in usd_list:
-                    amount_usd = float(amount_usd)
-                    if amount_usd != round(amount_usd, 2):
-                        return Response(
-                            {'detail': 'Invalid parameters'},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-                    conversion[amount_usd] = \
-                        Transaction.calculate_local_price(amount_usd, currency)
-                local_conversions[currency] = conversion
-            return Response(local_conversions)
-        except (AttributeError, ValueError):
-            return Response(
-                {'detail': 'Invalid parameters'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-
 @api_view(['POST'])
 @permission_classes((IsAdminUser,))
 def accept(request):
@@ -266,3 +214,51 @@ def accept(request):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({'status': 'success'})
+
+
+class PricingViewSet(viewsets.ModelViewSet):
+    serializer_class = serializers.PricingSerializer
+    permission_classes = (IsAdminUser,)
+    queryset = Pricing.objects.filter()
+
+    def pre_save(self, obj):
+        Pricing.end_previous_pricing()
+
+
+class PricingCurrent(RetrieveAPIView):
+    serializer_class = serializers.PricingSerializer
+    permission_classes = (IsAdminUser,)
+
+    def retrieve(self, request, *args, **kwargs):
+        self.object = Pricing.objects.get(end__isnull=True)
+        serializer = self.get_serializer(self.object)
+        return Response(serializer.data)
+
+
+class PricingLocal(APIView):
+    def get(self, request, format=None):
+        try:
+            usd_list = request.QUERY_PARAMS.get('amount_usd')
+            usd_list = usd_list.split(',')
+            currency_list = request.QUERY_PARAMS.get('currency')
+            currency_list = currency_list.split(',')
+
+            local_conversions = {}
+            for currency in currency_list:
+                if(currency) not in CURRENCIES:
+                    raise AttributeError
+                conversion = {}
+                for amount_usd in usd_list:
+                    amount_usd = float(amount_usd)
+                    if amount_usd != round(amount_usd, 2):
+                        raise AttributeError
+
+                    conversion[amount_usd] = \
+                        Transaction.calculate_local_price(amount_usd, currency)
+                local_conversions[currency] = conversion
+            return Response(local_conversions)
+        except (AttributeError):
+            return Response(
+                {'detail': 'Invalid parameters'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
