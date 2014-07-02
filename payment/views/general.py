@@ -12,7 +12,6 @@ class RetrievePayment(RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         pk = self.kwargs['pk']
-        print pk
         try:
             self.object = Transaction.objects.get(id=pk)
         except Transaction.DoesNotExist:
