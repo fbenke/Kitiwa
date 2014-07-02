@@ -1,5 +1,7 @@
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
+from django.db import transaction as dbtransaction
+
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -13,8 +15,6 @@ from kitiwa.api_calls import sendgrid_mail
 from kitiwa.utils import log_error
 from kitiwa.settings import ENV_SITE_MAPPING, ENV, SITE_USER, ENV_LOCAL
 from kitiwa.settings import PAGA_MERCHANT_KEY, PAGA_PRIVATE_KEY
-
-from django.db import transaction as dbtransaction
 
 
 # TODO: make this a background task
@@ -60,7 +60,7 @@ def backend_callback(request):
         # create PagaPayment
         paga_payment = PagaPayment(
             transaction=transaction, paga_transaction_reference=transaction_reference,
-            paga_transaction_id=transaction_id, processed_at=transaction_datetime, status='SUCCESS')
+            paga_transaction_id=transaction_id, paga_processed_at=transaction_datetime, status='SUCCESS')
 
         # update transaction and paga payment (all-or-nothing)
         with dbtransaction.atomic():
@@ -117,7 +117,7 @@ def user_callback(request):
         if merchant_key != PAGA_MERCHANT_KEY:
             raise PagaException
             # return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=merchantkey')
-        
+
         http_prefix = 'https://'
         if ENV == ENV_LOCAL:
             http_prefix = 'http://'

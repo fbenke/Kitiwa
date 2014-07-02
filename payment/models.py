@@ -123,16 +123,16 @@ class PagaPayment(models.Model):
         help_text='a reference to the transaction that is also shared with the user'
     )
 
-    processed_at = models.DateTimeField(
+    # this is not a DateTimeField, because paga sends a naive datetime
+    paga_processed_at = models.CharField(
         'processed at',
+        max_length=30,
         blank=True,
-        null=True,
         help_text='datetime sent by paga'
     )
 
     status = models.CharField(
         'satus sent by paga',
         max_length=30,
-        blank=True,
         help_text='satus sent by paga',
     )

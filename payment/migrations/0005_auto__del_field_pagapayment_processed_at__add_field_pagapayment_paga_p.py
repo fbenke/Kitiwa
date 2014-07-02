@@ -8,15 +8,23 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'PagaPayment.status'
-        db.add_column(u'payment_pagapayment', 'status',
-                      self.gf('django.db.models.fields.CharField')(default='N/A', max_length=30),
+        # Deleting field 'PagaPayment.processed_at'
+        db.delete_column(u'payment_pagapayment', 'processed_at')
+
+        # Adding field 'PagaPayment.paga_processed_at'
+        db.add_column(u'payment_pagapayment', 'paga_processed_at',
+                      self.gf('django.db.models.fields.CharField')(default='', max_length=30, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Deleting field 'PagaPayment.status'
-        db.delete_column(u'payment_pagapayment', 'status')
+        # Adding field 'PagaPayment.processed_at'
+        db.add_column(u'payment_pagapayment', 'processed_at',
+                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Deleting field 'PagaPayment.paga_processed_at'
+        db.delete_column(u'payment_pagapayment', 'paga_processed_at')
 
 
     models = {
@@ -33,9 +41,9 @@ class Migration(SchemaMigration):
         u'payment.pagapayment': {
             'Meta': {'object_name': 'PagaPayment'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'paga_processed_at': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'paga_transaction_id': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
             'paga_transaction_reference': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'processed_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'status': ('django.db.models.fields.CharField', [], {'max_length': '30'}),
             'transaction': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'paga_payment'", 'unique': 'True', 'to': u"orm['transaction.Transaction']"})
         },

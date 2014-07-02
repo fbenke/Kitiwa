@@ -19,7 +19,8 @@ class PagaSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.PagaPayment
         read_only_fields = (
-            'paga_transaction_reference', 'paga_transaction_id', 'processed_at', 'status'
+            'paga_transaction_reference', 'paga_transaction_id',
+            'paga_processed_at', 'status'
         )
         fields = read_only_fields
 
