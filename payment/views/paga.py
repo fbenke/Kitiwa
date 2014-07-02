@@ -14,7 +14,6 @@ from kitiwa.utils import log_error
 from kitiwa.settings import ENV_SITE_MAPPING, ENV, SITE_USER, ENV_LOCAL
 from kitiwa.settings import PAGA_MERCHANT_KEY, PAGA_PRIVATE_KEY
 
-from django.utils import timezone
 from django.db import transaction as dbtransaction
 
 
@@ -63,27 +62,23 @@ def backend_callback(request):
             transaction=transaction, paga_transaction_reference=transaction_reference,
             paga_transaction_id=transaction_id, processed_at=transaction_datetime, status='SUCCESS')
 
-        # update transaction
-        transaction.state = Transaction.PAID
-        transaction.paid_at = timezone.now()
-
         # update transaction and paga payment (all-or-nothing)
         with dbtransaction.atomic():
-            transaction.save()
+            transaction.set_paid()
             paga_payment.save()
 
         sendgrid_mail.notify_admins_paid()
 
         return Response({'detail': 'Success'})
 
+    except PagaException as e:
+        log_error(message)
+
     except Transaction.DoesNotExist as e:
         message = 'ERROR - PAGA (backend): no transaction found for uuid {}, {}. {}'
         log_error(message.format(invoice, e, request.DATA))
 
-    except PagaException as e:
-        log_error(message)
-
-    except (KeyError, TypeError) as e:
+    except (KeyError, TypeError, ValueError) as e:
         message = 'ERROR - PAGA (backend): received invalid payment notification, {}, {}'
         log_error(message.format(e, request.DATA))
 
@@ -91,55 +86,65 @@ def backend_callback(request):
 
 
 @csrf_exempt
+@api_view(['POST'])
 def user_callback(request):
+    try:
+        paga_status = request.DATA.get('status')
+        merchant_key = request.DATA.get('key')
+        transaction_id = request.DATA.get('transaction_id')
+        process_code = request.DATA.get('process_code')
+        invoice = request.DATA.get('invoice')
 
-    paga_status = request.POST.get('status')
-    merchant_key = request.POST.get('key')
-    transaction_id = request.POST.get('transaction_id')
-    process_code = request.POST.get('process_code')
-    invoice = request.POST.get('invoice')
+        kitiwa_reference = request.GET.get('reference', 'error')
 
-    # could be used for double checking the value
-    # total = request.POST.get('total')
+        # could be used for double checking the value
+        # total = request.DATA.get('total')
 
-    # not needed for now
-    # fee = request.POST.get('fee')
-    # test = request.POST.get('test')
-    # message = request.POST.get('message')
-    # exchangeRate = request.POST.get('exchange_rate')
-    # reference_number = request.POST.get('reference_number')
-    # currency = request.POST.get('currency')
-    # reference = request.POST.get('reference')
-    # customer_account = request.POST.get('customer_account')
+        # not needed for now
+        # fee = request.DATA.get('fee')
+        # test = request.DATA.get('test')
+        # message = request.DATA.get('message')
+        # exchangeRate = request.DATA.get('exchange_rate')
+        # reference_number = request.DATA.get('reference_number')
+        # currency = request.DATA.get('currency')
+        # reference = request.DATA.get('reference')
+        # customer_account = request.DATA.get('customer_account')
 
-    kitiwa_reference = request.GET.get('reference', 'error')
+        if (paga_status is None or merchant_key is None or transaction_id is None
+                or process_code is None or invoice is None):
+            raise ValueError
 
-    http_prefix = 'https://'
-    if ENV == ENV_LOCAL:
-        http_prefix = 'http://'
-
-    if paga_status == 'SUCCESS':
         if merchant_key != PAGA_MERCHANT_KEY:
-            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=merchantkey')
-        else:
+            raise PagaException
+            # return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=merchantkey')
+        
+        http_prefix = 'https://'
+        if ENV == ENV_LOCAL:
+            http_prefix = 'http://'
+
+        if paga_status == 'SUCCESS':
             return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/thanks?reference=' + kitiwa_reference +
                             '&pagaTransactionId=' + transaction_id)
-    else:
-        # TODO: put this in messaging queue
-        try:
-            transaction = Transaction.objects.get(transaction_uuid=invoice)
+        else:
+            # TODO: put this in messaging queue
+            transaction = Transaction.objects.get(transaction_uuid=invoice, state=Transaction.INIT)
             paga_payment = PagaPayment(
                 transaction=transaction, paga_transaction_reference=process_code,
                 paga_transaction_id=transaction_id, status=paga_status)
-            transaction.state = Transaction.DECLINED
-            transaction.declined_at = timezone.now()
             with dbtransaction.atomic():
-                transaction.save()
+                transaction.set_declined()
                 paga_payment.save()
 
-        except Exception:
-            pass
-        return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?status=' + status)
+            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?status=' + paga_status)
 
-
-
+    except (TypeError, ValueError) as e:
+        message = 'ERROR - PAGA (user redirect): received invalid payment notification, {}, {}'
+        log_error(message.format(e, request.DATA))
+    except Transaction.DoesNotExist as e:
+        message = 'ERROR - PAGA (user redirect): no transaction in state INIT found for uuid {}, {}. {}'
+        log_error(message.format(invoice, e, request.DATA))
+    except PagaException:
+        message = 'ERROR - PAGA (user redirect): request with invalid merchant key ({}) for transaction {}. {}'
+        log_error(message.format(merchant_key, transaction_id, request.POST))
+ 
+    return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)

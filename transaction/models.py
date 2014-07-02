@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.utils.datetime_safe import datetime
+from django.utils import timezone
 
 from kitiwa.settings import ONE_SATOSHI, GHS, NGN, PAGA, MPOWER, CURRENCIES, \
     PAYMENT_PROVIDERS, PAYMENT_CURRENCY
@@ -84,7 +84,7 @@ class Pricing(models.Model):
     def end_previous_pricing():
         try:
             previous_pricing = Pricing.objects.get(end__isnull=True)
-            previous_pricing.end = datetime.utcnow()
+            previous_pricing.end = timezone.now()
             previous_pricing.save()
         except ObjectDoesNotExist:
             log_error('ERROR - Failed to end previous pricing.')
@@ -286,17 +286,17 @@ class Transaction(models.Model):
 
     def set_invalid(self):
         self.state = Transaction.INVALID
-        self.declined_at = datetime.utcnow()
+        self.declined_at = timezone.now()
         self.save()
 
     def set_declined(self):
         self.state = Transaction.DECLINED
-        self.declined_at = datetime.utcnow()
+        self.declined_at = timezone.now()
         self.save()
 
     def set_paid(self):
         self.state = Transaction.PAID
-        self.paid_at = datetime.utcnow()
+        self.paid_at = timezone.now()
         self.save()
 
     def update_btc(self, rate):

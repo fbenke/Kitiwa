@@ -14,7 +14,7 @@ class RetrievePayment(RetrieveAPIView):
         pk = self.kwargs['pk']
         print pk
         try:
-            self.object = Transaction.objects.select_related('mpower_payment').get(id=pk)
+            self.object = Transaction.objects.get(id=pk)
         except Transaction.DoesNotExist:
             return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.get_serializer(self.object)
