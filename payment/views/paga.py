@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
-from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction as dbtransaction
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -85,29 +86,30 @@ def backend_callback(request):
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@csrf_exempt
+@require_http_methods(['POST'])
 def user_callback(request):
     try:
-        paga_status = request.DATA.get('status')
-        merchant_key = request.DATA.get('key')
-        transaction_id = request.DATA.get('transaction_id')
-        process_code = request.DATA.get('process_code')
-        invoice = request.DATA.get('invoice')
+        paga_status = request.POST.get('status')
+        merchant_key = request.POST.get('key')
+        transaction_id = request.POST.get('transaction_id')
+        process_code = request.POST.get('process_code')
+        invoice = request.POST.get('invoice')
 
         kitiwa_reference = request.GET.get('reference', 'error')
 
         # could be used for double checking the value
-        # total = request.DATA.get('total')
+        # total = request.POST.get('total')
 
         # not needed for now
-        # fee = request.DATA.get('fee')
-        # test = request.DATA.get('test')
-        # message = request.DATA.get('message')
-        # exchangeRate = request.DATA.get('exchange_rate')
-        # reference_number = request.DATA.get('reference_number')
-        # currency = request.DATA.get('currency')
-        # reference = request.DATA.get('reference')
-        # customer_account = request.DATA.get('customer_account')
+        # fee = request.POST.get('fee')
+        # test = request.POST.get('test')
+        # message = request.POST.get('message')
+        # exchangeRate = request.POST.get('exchange_rate')
+        # reference_number = request.POST.get('reference_number')
+        # currency = request.POST.get('currency')
+        # reference = request.POST.get('reference')
+        # customer_account = request.POST.get('customer_account')
 
         if (paga_status is None or merchant_key is None or transaction_id is None
                 or process_code is None or invoice is None):
@@ -139,10 +141,10 @@ def user_callback(request):
 
     except (TypeError, ValueError) as e:
         message = 'ERROR - PAGA (user redirect): received invalid payment notification, {}, {}'
-        log_error(message.format(e, request.DATA))
+        log_error(message.format(e, request.POST))
     except Transaction.DoesNotExist as e:
         message = 'ERROR - PAGA (user redirect): no transaction in state INIT found for uuid {}, {}. {}'
-        log_error(message.format(invoice, e, request.DATA))
+        log_error(message.format(invoice, e, request.POST))
     except PagaException:
         message = 'ERROR - PAGA (user redirect): request with invalid merchant key ({}) for transaction {}. {}'
         log_error(message.format(merchant_key, transaction_id, request.POST))
