@@ -85,7 +85,6 @@ def backend_callback(request):
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
 
 
-@csrf_exempt
 @api_view(['POST'])
 def user_callback(request):
     try:
@@ -135,7 +134,8 @@ def user_callback(request):
                 transaction.set_declined()
                 paga_payment.save()
 
-            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?status=' + paga_status)
+            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?reference=' + kitiwa_reference +
+                            '&status=' + paga_status)
 
     except (TypeError, ValueError) as e:
         message = 'ERROR - PAGA (user redirect): received invalid payment notification, {}, {}'
