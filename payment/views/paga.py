@@ -85,7 +85,6 @@ def backend_callback(request):
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
 
 
-@csrf_exempt
 @api_view(['POST'])
 def user_callback(request):
     try:
