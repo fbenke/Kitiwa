@@ -121,19 +121,24 @@ def user_callback(request):
             http_prefix = 'http://'
 
         if paga_status == 'SUCCESS':
-            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/thanks?reference=' + kitiwa_reference +
-                            '&pagaTransactionId=' + transaction_id)
-        else:
-            # TODO: put this in messaging queue
-            transaction = Transaction.objects.get(transaction_uuid=invoice, state=Transaction.INIT)
-            paga_payment = PagaPayment(
-                transaction=transaction, paga_transaction_reference=process_code,
-                paga_transaction_id=transaction_id, status=paga_status)
-            with dbtransaction.atomic():
-                transaction.set_declined()
-                paga_payment.save()
 
-            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?reference=' + kitiwa_reference +
+            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER]
+                            + '/#!/thanks?reference=' + kitiwa_reference
+                            + '&pagaTransactionId=' + transaction_id)
+        else:
+            # in case of erros during authentication at paga, response contains mostly blanks and cannot be persisted
+            if paga_status != 'ERROR_AUTHENTICATION':
+                # TODO: put this in messaging queue
+                transaction = Transaction.objects.get(transaction_uuid=invoice, state=Transaction.INIT)
+                paga_payment = PagaPayment(
+                    transaction=transaction, paga_transaction_reference=process_code,
+                    paga_transaction_id=transaction_id, status=paga_status)
+                with dbtransaction.atomic():
+                    transaction.set_declined()
+                    paga_payment.save()
+
+            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] +
+                            '/#!/failed?reference=' + kitiwa_reference +
                             '&status=' + paga_status)
 
     except (TypeError, ValueError) as e:
@@ -146,4 +151,5 @@ def user_callback(request):
         message = 'ERROR - PAGA (user redirect): request with invalid merchant key ({}) for transaction {}. {}'
         log_error(message.format(merchant_key, transaction_id, request.DATA))
 
+    # TODO: better to put a redirect here as well?
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
