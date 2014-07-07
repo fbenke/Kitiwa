@@ -108,25 +108,29 @@ def user_callback(request):
         # reference = request.DATA.get('reference')
         # customer_account = request.DATA.get('customer_account')
 
-        if (paga_status is None or merchant_key is None or transaction_id is None
-                or process_code is None or invoice is None):
-            raise ValueError
-
-        if merchant_key != PAGA_MERCHANT_KEY and paga_status != 'ERROR_AUTHENTICATION':
-            raise PagaException
-            # return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=merchantkey')
-
         http_prefix = 'https://'
         if ENV == ENV_LOCAL:
             http_prefix = 'http://'
 
-        if paga_status == 'SUCCESS':
+        #  incomplete request
+        if (paga_status is None or merchant_key is None or transaction_id is None
+                or process_code is None or invoice is None):
+            raise ValueError
 
+        # incorrect merchant key
+        if merchant_key != PAGA_MERCHANT_KEY and paga_status != 'ERROR_AUTHENTICATION':
+            raise PagaException
+            # return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=merchantkey')
+
+        # successful payment
+        if paga_status == 'SUCCESS':
             return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER]
                             + '/#!/thanks?reference=' + kitiwa_reference
                             + '&pagaTransactionId=' + transaction_id)
+
+        # failed payment
         else:
-            # in case of erros during authentication at paga, response contains mostly blanks and cannot be persisted
+            # in case of erros during authentication with paga, response contains mostly blanks and cannot be persisted
             if paga_status != 'ERROR_AUTHENTICATION':
                 # TODO: put this in messaging queue
                 transaction = Transaction.objects.get(transaction_uuid=invoice, state=Transaction.INIT)
@@ -152,4 +156,5 @@ def user_callback(request):
         log_error(message.format(merchant_key, transaction_id, request.DATA))
 
     # TODO: better to put a redirect here as well?
+    # return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=unknown')
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
