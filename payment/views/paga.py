@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
-from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction as dbtransaction
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -134,7 +135,8 @@ def user_callback(request):
                 transaction.set_declined()
                 paga_payment.save()
 
-            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?status=' + paga_status)
+            return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?reference=' + kitiwa_reference +
+                            '&status=' + paga_status)
 
     except (TypeError, ValueError) as e:
         message = 'ERROR - PAGA (user redirect): received invalid payment notification, {}, {}'
@@ -144,6 +146,6 @@ def user_callback(request):
         log_error(message.format(invoice, e, request.DATA))
     except PagaException:
         message = 'ERROR - PAGA (user redirect): request with invalid merchant key ({}) for transaction {}. {}'
-        log_error(message.format(merchant_key, transaction_id, request.POST))
+        log_error(message.format(merchant_key, transaction_id, request.DATA))
  
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
