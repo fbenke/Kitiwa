@@ -1,7 +1,5 @@
 from django.shortcuts import redirect
 from django.db import transaction as dbtransaction
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -114,7 +112,7 @@ def user_callback(request):
                 or process_code is None or invoice is None):
             raise ValueError
 
-        if merchant_key != PAGA_MERCHANT_KEY:
+        if merchant_key != PAGA_MERCHANT_KEY and paga_status != 'ERROR_AUTHENTICATION':
             raise PagaException
             # return redirect(http_prefix + ENV_SITE_MAPPING[ENV][SITE_USER] + '/#!/failed?error=merchantkey')
 
@@ -147,5 +145,5 @@ def user_callback(request):
     except PagaException:
         message = 'ERROR - PAGA (user redirect): request with invalid merchant key ({}) for transaction {}. {}'
         log_error(message.format(merchant_key, transaction_id, request.DATA))
- 
+
     return Response({'detail': 'Error'}, status.HTTP_400_BAD_REQUEST)
