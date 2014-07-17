@@ -32,5 +32,9 @@ def get_usd_ghs(request):
             'ERROR - FOREX (get_usd_ghs): Call gave a request exception ' +
             repr(e)
         )
-        return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+    except TypeError as e:
+        log_error(
+            'ERROR - FOREX (get_usd_ghs): TypeError caught due to abnormal response ' +
+            repr(e)
+        )
+    return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -34,7 +34,9 @@ def get_bitstamp_exchange_rate():
             return None
     except requests.RequestException as e:
         log_error('ERROR - BLOCKCHAIN: Call gave a request exception ' + repr(e))
-        return None
+    except TypeError as e:
+        log_error('ERROR - BLOCKCHAIN: TypeError caught due to abnormal response ' + repr(e))
+    return None
 
 
 @api_view(['GET'])

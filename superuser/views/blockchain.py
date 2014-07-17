@@ -45,8 +45,13 @@ def get_balance(request):
             'ERROR - BLOCKCHAIN (get_balance): Call gave a request exception ' +
             repr(e)
         )
-        return Response({'error': 'Unable to retrieve balance (request exception)'},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except TypeError as e:
+        log_error(
+            'ERROR - BLOCKCHAIN (get_balance): TypeError caught due to abnormal response' +
+            repr(e)
+        )
+    return Response({'error': 'Unable to retrieve balance (request exception)'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def get_blockchain_exchange_rate():
@@ -71,7 +76,12 @@ def get_blockchain_exchange_rate():
             'ERROR - BLOCKCHAIN (get_blockchain_exchange_rate): Call gave a request exception ' +
             repr(e)
         )
-        return None
+    except TypeError as e:
+        log_error(
+            'ERROR - BLOCKCHAIN (get_blockchain_exchange_rate): TypeError caught due to abnormal response ' +
+            repr(e)
+        )
+    return None
 
 
 @api_view(['GET'])
