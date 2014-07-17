@@ -30,13 +30,11 @@ def get_bitstamp_exchange_rate():
                 log_error('ERROR - BITSTAMP: Ask rate not present in 200 response')
                 return None
         else:
-            log_error('ERROR - BITSTAMP: Call returned response code: ' + get_rate_call.status_code)
+            log_error('ERROR - BITSTAMP: Call returned response code: ' + str(get_rate_call.status_code))
             return None
     except requests.RequestException as e:
         log_error('ERROR - BLOCKCHAIN: Call gave a request exception ' + repr(e))
-    except TypeError as e:
-        log_error('ERROR - BLOCKCHAIN: TypeError caught due to abnormal response ' + repr(e))
-    return None
+        return None
 
 
 @api_view(['GET'])
@@ -66,12 +64,17 @@ class BitStampRequest(APIView):
         if None in params.values():
             log_error('ERROR - BITSTAMP (' + self.url + '): Missing nonce/signature in params')
             return Response({'error': 'Invalid data received'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        r = requests.post(self.url, data=params)
-        if r.status_code == 200:
-            return Response(r.json())
-        else:
-            log_error('ERROR - BITSTAMP: Call returned response code: ' + r.status_code)
-            return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            r = requests.post(self.url, data=params)
+            if r.status_code == 200:
+                return Response(r.json())
+            else:
+                log_error('ERROR - BITSTAMP: Call returned response code: ' + str(r.status_code))
+                return Response(r.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except requests.RequestException as e:
+            log_error('ERROR - BITSTAMP: Call gave a request exception ' + repr(e))
+            return Response({'error': 'Unable to retrieve balance (request exception)'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def get_params(self, request):
         nonce = request.POST.get('nonce', None)
