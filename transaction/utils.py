@@ -21,19 +21,13 @@ def consolidate_transactions(transactions):
 
 def consolidate_notification_sms(transactions):
     combined_sms_confirm = {}
-    combined_sms_topup = {}
     for t in transactions:
         try:
             combined_sms_confirm[t.notification_phone_number].append(t.reference_number)
         except KeyError:
             combined_sms_confirm[t.notification_phone_number] = [t.reference_number]
 
-        try:
-            combined_sms_topup[t.notification_phone_number] += t.amount_ghs
-        except (TypeError, KeyError):
-            combined_sms_topup[t.notification_phone_number] = t.amount_ghs
-
-    return combined_sms_confirm, combined_sms_topup
+    return combined_sms_confirm
 
 
 def is_valid_btc_address(value):

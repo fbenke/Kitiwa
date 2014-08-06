@@ -15,7 +15,7 @@ from rest_framework.throttling import AnonRateThrottle
 from superuser.views.blockchain import get_blockchain_exchange_rate
 
 from transaction.models import Transaction, Pricing
-from transaction.api_calls import smsgh, knoxxi
+from transaction.api_calls import smsgh
 
 from transaction import serializers
 from transaction import permissions
@@ -26,7 +26,6 @@ from payment.models import MPowerPayment
 
 from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
-from kitiwa.settings import KNOXXI_TOPUP_PERCENTAGE, KNOXXI_TOP_UP_ENABLED, KNOXXI_MINUMUM_AMOUNT
 from kitiwa.settings import PAGA_MERCHANT_KEY
 from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
 from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_RESPONSE_OTHER_ERROR
@@ -164,8 +163,7 @@ def accept(request):
                 else:
                     transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
 
-                    combined_sms_confirm, combined_sms_topup = \
-                        utils.consolidate_notification_sms(transactions)
+                    combined_sms_confirm = utils.consolidate_notification_sms(transactions)
 
                     # send out confirmation SMS
                     for number, reference_numbers in combined_sms_confirm.iteritems():
@@ -178,23 +176,6 @@ def accept(request):
                             t.update_after_sms_notification(
                                 response_status, message_id
                             )
-
-                    # top up account
-                    # TODO: refactor this if it is ever needed again
-                    if KNOXXI_TOP_UP_ENABLED:
-                        for number, amount in combined_sms_topup.iteritems():
-                            topup = round(amount * KNOXXI_TOPUP_PERCENTAGE, 2)
-
-                            if topup > KNOXXI_MINUMUM_AMOUNT:
-                                success = knoxxi.direct_top_up(
-                                    mobile_number=number,
-                                    amount=topup
-                                )
-                                if success:
-                                    smsgh.send_message_topup(
-                                        mobile_number=number,
-                                        topup=topup
-                                    )
             except requests.RequestException:
                 btc_transfer_request_error = True
     except AcceptException as e:
