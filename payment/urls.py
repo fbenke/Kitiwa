@@ -13,8 +13,8 @@ urlpatterns = patterns(
     url(r'^mpower/$', 'payment.views.mpower.opr_charge', name='mpower-charge'),
 
     # paga
-    url(r'^paga/backendcallback/$', 'payment.views.paga.backend_callback', name='paga-backend-callback'),
-    url(r'^paga/usercallback/$', 'payment.views.paga.user_callback', name='paga-user-callback'),
+    # url(r'^paga/backendcallback/$', 'payment.views.paga.backend_callback', name='paga-backend-callback'),
+    # url(r'^paga/usercallback/$', 'payment.views.paga.user_callback', name='paga-user-callback'),
 
 )
 

@@ -33,7 +33,7 @@ urlpatterns = patterns(
     url(r'^pricing/$', pricing, name='pricing'),
     url(r'^pricing/(?P<pk>[0-9]+)/$', pricing_detail, name='pricing-detail'),
     url(r'^pricing/current/$', views.PricingCurrent.as_view(), name='pricing-current'),
-    url(r'^pricing/local/$', views.PricingLocal.as_view(), name='pricing-ghs'),
+    url(r'^pricing/local/$', views.PricingLocal.as_view(), name='pricing'),
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)

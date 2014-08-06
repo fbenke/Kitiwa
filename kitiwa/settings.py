@@ -227,7 +227,8 @@ OPEN_EXCHANGE_RATE_API_URL = 'https://openexchangerates.org/api/latest.json?app_
 # Payment Providers
 MPOWER = '0'
 PAGA = '1'
-PAYMENT_PROVIDERS = (MPOWER, PAGA, )
+PAYMENT_PROVIDERS = (MPOWER, )
+# PAYMENT_PROVIDERS = (MPOWER, PAGA, )
 
 # Currencies
 GHS = '0'
