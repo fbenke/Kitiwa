@@ -7,8 +7,8 @@ from payment.utils import MPowerException
 from transaction.models import Transaction
 
 from kitiwa.api_calls import sendgrid_mail
-from kitiwa.settings import MPOWER_INVD_TOKEN_ERROR_MSG, MPOWER_RESPONSE_SUCCESS,\
-    MPOWER_RESPONSE_INSUFFICIENT_FUNDS, MPOWER_RESPONSE_OTHER_ERROR
+from kitiwa.settings import MPOWER_RESPONSE_SUCCESS, MPOWER_RESPONSE_ACCOUNT_ERROR,\
+    MPOWER_RESPONSE_INPUT_ERROR
 
 import re
 
@@ -48,9 +48,7 @@ def opr_charge(request):
     if response_code == MPOWER_RESPONSE_SUCCESS:
         # TODO: make this a background task
         sendgrid_mail.notify_admins_paid()
-    elif (response_code == MPOWER_RESPONSE_INSUFFICIENT_FUNDS) or\
-         (response_code == MPOWER_RESPONSE_OTHER_ERROR and
-          response_text.find(MPOWER_INVD_TOKEN_ERROR_MSG) != -1):
+    elif response_code in (MPOWER_RESPONSE_ACCOUNT_ERROR, MPOWER_RESPONSE_INPUT_ERROR):
         response.status_code = status.HTTP_400_BAD_REQUEST
     else:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR

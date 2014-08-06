@@ -28,7 +28,6 @@ from kitiwa.settings import BITCOIN_NOTE
 from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import PAGA_MERCHANT_KEY
 from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
-from kitiwa.settings import MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG, MPOWER_RESPONSE_OTHER_ERROR
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -72,13 +71,9 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
             # payment-provider specific information
             if payment_type == MPOWER:
-                mpower_response = MPowerPayment.opr_token_response(transaction_id)
+                mpower_response, http_status_code = MPowerPayment.opr_token_response(transaction_id)
                 response.data['mpower_response'] = mpower_response
-                if mpower_response['response_code'] == MPOWER_RESPONSE_OTHER_ERROR:
-                    if mpower_response['response_text'].find(MPOWER_INVD_ACCOUNT_ALIAS_ERROR_MSG) != -1:
-                        response.status_code = status.HTTP_400_BAD_REQUEST
-                    else:
-                        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+                response.status_code = http_status_code
             elif payment_type == PAGA:
                 response.data['merchant_key'] = PAGA_MERCHANT_KEY
 

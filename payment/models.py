@@ -1,9 +1,11 @@
 from django.db import models
 from django.db import transaction as dbtransaction
 
+from rest_framework import status
+
 from transaction.models import Transaction
 
-from kitiwa.settings import MPOWER_RESPONSE_SUCCESS
+from kitiwa.settings import MPOWER_RESPONSE_SUCCESS, MPOWER_RESPONSE_INPUT_ERROR
 
 from payment.api_calls import mpower
 
@@ -73,11 +75,23 @@ class MPowerPayment(models.Model):
     @staticmethod
     def opr_token_response(transaction_id):
         mpower_payment = MPowerPayment.objects.get(transaction__id=transaction_id)
+        response_code = mpower_payment.mpower_response_code
+        response_text = mpower_payment.mpower_response_text
+
+        status_code = status.HTTP_200_OK
+
+        if response_code != MPOWER_RESPONSE_SUCCESS:
+            if response_code == MPOWER_RESPONSE_INPUT_ERROR:
+                status_code = status.HTTP_400_BAD_REQUEST
+            else:
+                status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+
         response = {
-            'response_code': mpower_payment.mpower_response_code,
-            'response_text': mpower_payment.mpower_response_text
+            'response_code': response_code,
+            'response_text': response_text
         }
-        return response
+
+        return response, status_code
 
     def opr_charge(self, mpower_confirm_token):
 
