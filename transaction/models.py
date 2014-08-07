@@ -309,3 +309,10 @@ class Transaction(models.Model):
         self.smsgh_response_status = response_status
         self.smsgh_message_id = message_id
         self.save()
+
+    def verify_payment(self):
+        if self.payment_type == MPOWER:
+            return self.mpower_payment.verify_payment()
+        elif self.payment_type == PAGA:
+            # TODO: implement Paga verification
+            return True

@@ -50,7 +50,7 @@ class MPowerPayment(models.Model):
         'MPower Response Text',
         max_length=200,
         blank=True,
-        help_text='Only stored for tracking record'
+        help_text='Stored for verifying payment status'
     )
 
     def opr_token_request(self, phone_number, amount):
@@ -114,6 +114,9 @@ class MPowerPayment(models.Model):
             self.save()
 
         return response_code, response_text
+
+    def verify_payment(self):
+        return mpower.check_invoice_status(self.mpower_invoice_token)
 
 
 class PagaPayment(models.Model):

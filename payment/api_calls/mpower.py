@@ -1,12 +1,15 @@
 import requests
 from requests import RequestException
-import json
-from kitiwa.utils import log_error
 
+import json
+
+from kitiwa.utils import log_error
+from payment.utils import MPowerException
 
 from kitiwa.settings import MPOWER_TOKEN, MPOWER_MASTER_KEY,\
     MPOWER_PRIVATE_KEY, MPOWER_ENDPOINT_OPR_TOKEN_REQUEST,\
-    MPOWER_ENDPOINT_OPR_TOKEN_CHARGE
+    MPOWER_ENDPOINT_OPR_TOKEN_CHARGE, MPOWER_ENDPOINT_CHECK_INVOICE_STATUS,\
+    MPOWER_RESPONSE_SUCCESS, MPOWER_STATUS_COMPLETED
 
 
 def _create_headers():
@@ -84,10 +87,40 @@ def opr_charge_action(opr_token, confirm_token):
         response_code = decoded_response['response_code']
         response_text = decoded_response['response_text']
 
-    except RequestException as e:
+    except (RequestException, KeyError) as e:
         message = 'ERROR - MPOWER (opr_charge_action for token {}): {}'
         log_error(message.format(opr_token, repr(e)))
         response_code = "N/A"
         response_text = repr(e)
 
     return response_code, response_text
+
+
+def check_invoice_status(invoice_token):
+
+    headers = _create_headers()
+    endpoint = MPOWER_ENDPOINT_CHECK_INVOICE_STATUS.format(invoice_token)
+    try:
+        response = requests.get(
+            endpoint,
+            headers=headers
+        )
+        decoded_response = response.json()
+
+        if decoded_response['response_code'] != MPOWER_RESPONSE_SUCCESS:
+            message = 'ERROR - MPOWER (check_invoice_status for token {}): transaction not found'
+            raise MPowerException
+
+        if decoded_response['status'] != MPOWER_STATUS_COMPLETED:
+            message = 'ERROR - MPOWER (check_invoice_status for token {}): transaction not completed'
+            raise MPowerException
+
+        return True
+
+    except (RequestException, KeyError) as e:
+        message = 'ERROR - MPOWER (check_invoice_status for token {}): {}'
+        log_error(message.format(invoice_token, repr(e)))
+    except MPowerException:
+        log_error(message.format(invoice_token))
+
+    return False

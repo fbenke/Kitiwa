@@ -29,6 +29,10 @@ from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import PAGA_MERCHANT_KEY
 from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
 
+from kitiwa.utils import log_error
+
+from payment.api_calls import mpower
+
 
 class TransactionViewSet(viewsets.ModelViewSet):
 
@@ -117,8 +121,19 @@ def accept(request):
             # If any transaction is not PAID, fail the whole request
             for t in transactions:
                 if t.state != Transaction.PAID:
-                    raise AcceptException({'detail': 'Wrong state', 'id': t.id, 'state': t.state},
-                                          status.HTTP_403_FORBIDDEN)
+                    raise AcceptException(
+                        {'detail': 'Wrong state', 'id': t.id, 'state': t.state},
+                        status.HTTP_403_FORBIDDEN
+                    )
+
+            # Verify payment with payment provider
+            for t in transactions:
+                if not t.verify_payment():
+                    log_error('ERROR - ACCEPT: Transaction {} could not be verified as paid'.format(t.id))
+                    raise AcceptException(
+                        {'detail': 'One of the transactions could not be verified as paid',
+                         'id': t.id}, status.HTTP_403_FORBIDDEN
+                    )
 
             # Make sure that there are enough credits in smsgh account to send out confirmation sms
             smsgh_balance = smsgh.check_balance()
@@ -154,7 +169,8 @@ def accept(request):
                     'note': BITCOIN_NOTE
                 })
                 if btc_transfer_request.json().get('error'):
-                    btc_transfer_request_error = True
+                    log_error('ERROR - ACCEPT: {}'.format(btc_transfer_request.json()))
+                    btc_transfer_request_error = True     
                 else:
                     transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
 
@@ -171,7 +187,8 @@ def accept(request):
                             t.update_after_sms_notification(
                                 response_status, message_id
                             )
-            except requests.RequestException:
+            except requests.RequestException as e:
+                log_error('ERROR - ACCEPT: {}'.format(e))
                 btc_transfer_request_error = True
     except AcceptException as e:
         return Response(e.args[0], status=e.args[1])
@@ -234,3 +251,9 @@ class PricingLocal(APIView):
                 {'detail': 'Invalid parameters'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+@api_view(['GET'])
+def test(request):
+    mpower.check_invoice_status('test_6f7c6b7396')
+    return Response()
