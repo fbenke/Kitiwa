@@ -35,8 +35,6 @@ urlpatterns = patterns(
     url(r'^pricing/current/$', views.PricingCurrent.as_view(), name='pricing-current'),
     url(r'^pricing/local/$', views.PricingLocal.as_view(), name='pricing-local'),
 
-    url(r'^test/$', views.test),
-    
 )
 
 urlpatterns = format_suffix_patterns(urlpatterns)

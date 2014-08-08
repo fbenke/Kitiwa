@@ -31,8 +31,6 @@ from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
 
 from kitiwa.utils import log_error
 
-from payment.api_calls import mpower
-
 
 class TransactionViewSet(viewsets.ModelViewSet):
 
@@ -103,6 +101,7 @@ def accept(request):
 
     try:
         with dbtransaction.atomic():
+
             transactions = Transaction.objects.select_for_update()\
                 .filter(id__in=request.POST.get('ids', None).split(','))
 
@@ -129,7 +128,6 @@ def accept(request):
             # Verify payment with payment provider
             for t in transactions:
                 if not t.verify_payment():
-                    log_error('ERROR - ACCEPT: Transaction {} could not be verified as paid'.format(t.id))
                     raise AcceptException(
                         {'detail': 'One of the transactions could not be verified as paid',
                          'id': t.id}, status.HTTP_403_FORBIDDEN
@@ -170,7 +168,7 @@ def accept(request):
                 })
                 if btc_transfer_request.json().get('error'):
                     log_error('ERROR - ACCEPT: {}'.format(btc_transfer_request.json()))
-                    btc_transfer_request_error = True     
+                    btc_transfer_request_error = True
                 else:
                     transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
 
@@ -251,9 +249,3 @@ class PricingLocal(APIView):
                 {'detail': 'Invalid parameters'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-
-@api_view(['GET'])
-def test(request):
-    mpower.check_invoice_status('test_6f7c6b7396')
-    return Response()
