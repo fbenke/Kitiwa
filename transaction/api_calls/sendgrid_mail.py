@@ -1,16 +1,16 @@
 import sendgrid
-from kitiwa.settings import NOTIFY_ADMIN_PAID,\
-    NOTIFY_ADMIN_EMAIL_SUBJECT_PAID, NOTIFY_ADMIN_EMAIL_BODY_PAID,\
-    NOTIFY_ADMIN_TRANSACTION_THRESHOLD
 
 from kitiwa.settings import SENDGRID_USERNAME,\
     SENDGRID_PASSWORD, SENDGRID_EMAIL_FROM
 
+from django.contrib.auth.models import User
+from kitiwa.utils import log_error
+
+from kitiwa.settings import NOTIFY_ADMIN_PAID, NOTIFY_ADMIN_EMAIL_SUBJECT_PAID
+from kitiwa.settings import NOTIFY_ADMIN_EMAIL_BODY_PAID, NOTIFY_ADMIN_TRANSACTION_THRESHOLD
 from kitiwa.settings import ENV, ENV_SITE_MAPPING, SITE_ADMIN
 
-from django.contrib.auth.models import User
 from transaction.models import Transaction
-from kitiwa.utils import log_error
 
 
 def send_mail_to_admins(subject, body):

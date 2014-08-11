@@ -31,6 +31,8 @@ from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
 
 from kitiwa.utils import log_error
 
+from transaction.tasks import add
+
 
 class TransactionViewSet(viewsets.ModelViewSet):
 
@@ -249,3 +251,13 @@ class PricingLocal(APIView):
                 {'detail': 'Invalid parameters'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+@api_view(['GET'])
+def test(request):
+    add.delay(4, 4)
+    # result = add.delay(4, 4)
+    # print result.ready()
+    # print result.get(timeout=1)
+    # print result.ready()
+    return Response()
