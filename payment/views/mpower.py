@@ -9,7 +9,7 @@ from transaction.models import Transaction
 from kitiwa.settings import MPOWER_RESPONSE_SUCCESS, MPOWER_RESPONSE_ACCOUNT_ERROR,\
     MPOWER_RESPONSE_INPUT_ERROR
 
-from transaction.tasks import notify_admins_paid
+from transaction.api_calls import sendgrid_mail
 
 import re
 
@@ -47,7 +47,7 @@ def opr_charge(request):
     }
 
     if response_code == MPOWER_RESPONSE_SUCCESS:
-        notify_admins_paid.delay()
+        sendgrid_mail.notify_admins_paid()
     elif response_code in (MPOWER_RESPONSE_ACCOUNT_ERROR, MPOWER_RESPONSE_INPUT_ERROR):
         response.status_code = status.HTTP_400_BAD_REQUEST
     else:

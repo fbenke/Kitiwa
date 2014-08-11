@@ -14,8 +14,3 @@ def add(x, y):
 @shared_task
 def accept():
     pass
-
-
-@shared_task
-def notify_admins_paid():
-    sendgrid_mail.notify_admins_paid()
