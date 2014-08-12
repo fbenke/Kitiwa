@@ -297,7 +297,7 @@ NOTIFY_USER_CONF_REF_TEXT_MULTIPLE = 'The following bitcoin orders have been pro
 NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm that you\'ve received it on our Facebook page: fb.com/kitiwaBTC'
 
 # Celery
-BROKER_URL = os.environ.get('BROKER_URL')
+BROKER_URL = os.environ.get('CLOUDAMQP_URL')
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
