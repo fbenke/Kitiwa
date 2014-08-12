@@ -126,11 +126,13 @@ def accept(request):
         return Response({'detail': 'Invalid Input'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes((IsAdminUser,))
 def get_accept_status(request):
     try:
-        task_id = request.DATA.get('task_id')
+        task_id = request.GET.get('task_id')
+        if task_id is None:
+            raise AttributeError
         result = process_transactions.AsyncResult(task_id)
         if result.ready():
             response = {'status': result.get()}
