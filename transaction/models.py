@@ -125,6 +125,7 @@ class Transaction(models.Model):
     PAID = 'PAID'
     CANCELLED = 'CANC'
     DECLINED = 'DECL'
+    PROCESSING = 'PRSS'
     PROCESSED = 'PROC'
 
     TRANSACTION_STATUS = (
@@ -133,6 +134,7 @@ class Transaction(models.Model):
         (PAID, 'paid'),
         (CANCELLED, 'cancelled'),
         (DECLINED, 'declined'),
+        (PROCESSING, 'processing'),
         (PROCESSED, 'processed'),
     )
 

@@ -1,7 +1,4 @@
 from django.db import transaction as dbtransaction
-from django.utils.datetime_safe import datetime
-
-import requests
 
 from rest_framework import viewsets
 from rest_framework import status
@@ -12,26 +9,16 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 
-from superuser.views.blockchain import get_blockchain_exchange_rate
-
-from transaction.models import Transaction, Pricing
-from transaction.api_calls import smsgh
-
-from transaction import serializers
-from transaction import permissions
-from transaction import utils
-from transaction.utils import AcceptException, PricingException
-
-from payment.models import MPowerPayment
-
-from kitiwa.settings import BITCOIN_NOTE
-from kitiwa.settings import BLOCKCHAIN_API_SENDMANY
 from kitiwa.settings import PAGA_MERCHANT_KEY
 from kitiwa.settings import MPOWER, PAGA, PAYMENT_CURRENCY, GHS, NGN, CURRENCIES
 
-from kitiwa.utils import log_error
+from transaction import serializers
+from transaction import permissions
+from transaction.models import Transaction, Pricing
+from transaction.utils import AcceptException, PricingException
+from transaction.tasks import add, process_transactions
 
-from transaction.tasks import add
+from payment.models import MPowerPayment
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
@@ -98,23 +85,20 @@ class TransactionViewSet(viewsets.ModelViewSet):
 @permission_classes((IsAdminUser,))
 def accept(request):
 
-    btc_transfer_request = None
-    btc_transfer_request_error = False
-
     try:
         with dbtransaction.atomic():
 
-            transactions = Transaction.objects.select_for_update()\
-                .filter(id__in=request.POST.get('ids', None).split(','))
+            ids = request.DATA.get('ids', None).split(',')
+
+            transactions = Transaction.objects.select_for_update().filter(id__in=ids)
 
             # Expects a comma separated list of ids as a POST param called ids
             try:
-                password1 = request.POST.get('password1', None)
-                password2 = request.POST.get('password2', None)
+                password1 = request.DATA.get('password1', None)
+                password2 = request.DATA.get('password2', None)
             except (ValueError, AttributeError):
                 raise AcceptException({'detail': 'Invalid ID'}, status.HTTP_400_BAD_REQUEST)
 
-            # VALIDATION
             # Validate Input
             if not transactions or not password1 or not password2:
                 raise AcceptException({'detail': 'Invalid IDs and/or Passwords'}, status.HTTP_400_BAD_REQUEST)
@@ -127,80 +111,15 @@ def accept(request):
                         status.HTTP_403_FORBIDDEN
                     )
 
-            # Verify payment with payment provider
-            for t in transactions:
-                if not t.verify_payment():
-                    raise AcceptException(
-                        {'detail': 'One of the transactions could not be verified as paid',
-                         'id': t.id}, status.HTTP_403_FORBIDDEN
-                    )
+            # Set transactions to PROCESSING
+            transactions.update(state=Transaction.PROCESSING)
 
-            # Make sure that there are enough credits in smsgh account to send out confirmation sms
-            smsgh_balance = smsgh.check_balance()
+            process_transactions.delay(ids, password1, password2)
 
-            if smsgh_balance is not None:
-                if smsgh_balance < len(transactions):
-                    raise AcceptException({'detail': 'Not enough credit on SMSGH account'},
-                                          status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            # USD-BTC CONVERSION
-            # Get latest exchange rate
-            rate = get_blockchain_exchange_rate()
-            if rate is None:
-                raise AcceptException({'detail': 'Failed to retrieve exchange rate'},
-                                      status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-            # Update amount_btc based on latest exchange rate
-            for t in transactions:
-                t.update_btc(rate)
-
-            # Combine transactions with same wallet address
-            combined_transactions = utils.consolidate_transactions(transactions)
-
-            # REQUEST
-            # Prepare request and send
-            recipients = utils.create_recipients_string(combined_transactions)
-
-            try:
-                btc_transfer_request = requests.get(BLOCKCHAIN_API_SENDMANY, params={
-                    'password': password1,
-                    'second_password': password2,
-                    'recipients': recipients,
-                    'note': BITCOIN_NOTE
-                })
-                if btc_transfer_request.json().get('error'):
-                    log_error('ERROR - ACCEPT: {}'.format(btc_transfer_request.json()))
-                    btc_transfer_request_error = True
-                else:
-                    transactions.update(state=Transaction.PROCESSED, processed_at=datetime.utcnow())
-
-                    combined_sms_confirm = utils.consolidate_notification_sms(transactions)
-
-                    # send out confirmation SMS
-                    for number, reference_numbers in combined_sms_confirm.iteritems():
-                        response_status, message_id = smsgh.send_message_confirm(
-                            mobile_number=number,
-                            reference_numbers=reference_numbers
-                        )
-
-                        for t in transactions.filter(notification_phone_number=number):
-                            t.update_after_sms_notification(
-                                response_status, message_id
-                            )
-            except requests.RequestException as e:
-                log_error('ERROR - ACCEPT: {}'.format(e))
-                btc_transfer_request_error = True
     except AcceptException as e:
         return Response(e.args[0], status=e.args[1])
     except Transaction.DoesNotExist:
         return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
-
-    if btc_transfer_request_error:
-        if btc_transfer_request:
-            return Response(btc_transfer_request.json(), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        else:
-            return Response("{'error': 'Error making btc transfer request to blockchain'}",
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response({'status': 'success'})
 
@@ -255,9 +174,10 @@ class PricingLocal(APIView):
 
 @api_view(['GET'])
 def test(request):
-    add.delay(4, 4)
-    # result = add.delay(4, 4)
-    # print result.ready()
+    # add.delay(4, 4)
+    result = add.delay(4, 4)
+    print result.id
+    print result.ready()
     # print result.get(timeout=1)
     # print result.ready()
     return Response()
