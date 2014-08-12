@@ -2,7 +2,6 @@ import os
 
 import dj_database_url
 
-
 # Helpers
 BASE_DIR = lambda *x: os.path.join(os.path.abspath(os.path.join(
     os.path.dirname(__file__), os.path.pardir)).replace('\\', '/'), *x)
@@ -69,6 +68,7 @@ THIRD_PARTY_APPS = (
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'djcelery',
 )
 
 LOCAL_APPS = (
@@ -298,8 +298,8 @@ NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm 
 
 # Celery
 BROKER_URL = os.environ.get('BROKER_URL')
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
-CELERY_RESULT_BACKEND = 'amqp'
-CELERY_TASK_RESULT_EXPIRES = 18000  # 5 hours.
+

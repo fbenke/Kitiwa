@@ -86,18 +86,18 @@ def process_transactions(ids, password1, password2):
             combined_sms_confirm = utils.consolidate_notification_sms(transactions)
 
             # send out confirmation SMS
-            # for number, reference_numbers in combined_sms_confirm.iteritems():
-            #     response_status, message_id = smsgh.send_message_confirm(
-            #         mobile_number=number,
-            #         reference_numbers=reference_numbers
-            #     )
+            for number, reference_numbers in combined_sms_confirm.iteritems():
+                response_status, message_id = smsgh.send_message_confirm(
+                    mobile_number=number,
+                    reference_numbers=reference_numbers
+                )
 
-            #     for t in transactions.filter(notification_phone_number=number):
-            #         t.update_after_sms_notification(
-            #             response_status, message_id
-            #         )
+                for t in transactions.filter(notification_phone_number=number):
+                    t.update_after_sms_notification(
+                        response_status, message_id
+                    )
 
-            result = 'SUCCESS'
+            return 'SUCCESS'
 
     except AcceptException as e:
         log_error(e)

@@ -9,7 +9,7 @@ from django.conf import settings
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kitiwa.settings')
 
-app = Celery('kitiwa')
+app = Celery('kitiwa', backend='djcelery.backends.database:DatabaseBackend')
 
 app.config_from_object('django.conf:settings')
 
