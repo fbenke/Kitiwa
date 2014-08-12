@@ -114,14 +114,31 @@ def accept(request):
             # Set transactions to PROCESSING
             transactions.update(state=Transaction.PROCESSING)
 
-            process_transactions.delay(ids, password1, password2)
+            result = process_transactions.delay(ids, password1, password2)
+
+            return Response({'task_id': result.id})
 
     except AcceptException as e:
         return Response(e.args[0], status=e.args[1])
     except Transaction.DoesNotExist:
         return Response({'detail': 'Invalid ID'}, status=status.HTTP_400_BAD_REQUEST)
+    except AttributeError:
+        return Response({'detail': 'Invalid Input'}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({'status': 'success'})
+
+@api_view(['POST'])
+@permission_classes((IsAdminUser,))
+def get_accept_status(request):
+    try:
+        task_id = request.DATA.get('task_id')
+        result = process_transactions.AsyncResult(task_id)
+        if result.ready():
+            response = {'status': result.get()}
+        else:
+            response = {'status': 'Background Task not finished yet.'}
+        return Response(response)
+    except AttributeError:
+        return Response({'detail': 'Invalid Input'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PricingViewSet(viewsets.ModelViewSet):
@@ -174,10 +191,16 @@ class PricingLocal(APIView):
 
 @api_view(['GET'])
 def test(request):
-    # add.delay(4, 4)
     result = add.delay(4, 4)
-    print result.id
-    print result.ready()
-    # print result.get(timeout=1)
-    # print result.ready()
-    return Response()
+    return Response({'task_id': result.id})
+
+
+@api_view(['POST'])
+def result(request):
+    task_id = request.DATA.get('task_id')
+    result = add.AsyncResult(task_id)
+    if result.ready():
+        response = {'result': result.get()}
+    else:
+        response = {'result': 'Task not finished yet.'}
+    return Response(response)

@@ -117,7 +117,7 @@ def check_invoice_status(invoice_token):
 
         return True
 
-    except (RequestException, KeyError) as e:
+    except (RequestException, KeyError, ValueError) as e:
         message = 'ERROR - MPOWER (check_invoice_status for token {}): {}'
         log_error(message.format(invoice_token, repr(e)))
     except MPowerException:

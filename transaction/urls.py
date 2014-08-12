@@ -28,6 +28,7 @@ urlpatterns = patterns(
     url(r'^transaction/$', transaction_list, name='transaction'),
     url(r'^transaction/(?P<pk>[0-9]+)/$', transaction_detail, name='transaction-detail'),
     url(r'^transaction/accept/$', 'transaction.views.accept', name='transaction-accept'),
+    url(r'^transaction/accept_status/$', 'transaction.views.get_accept_status', name='transaction-accept-status'),
 
     # pricing
     url(r'^pricing/$', pricing, name='pricing'),
@@ -35,7 +36,8 @@ urlpatterns = patterns(
     url(r'^pricing/current/$', views.PricingCurrent.as_view(), name='pricing-current'),
     url(r'^pricing/local/$', views.PricingLocal.as_view(), name='pricing-local'),
 
-    url(r'^test/$', 'transaction.views.test', ),
+    url(r'^test/$', 'transaction.views.test'),
+    url(r'^result/$', 'transaction.views.result'),
 
 )
 

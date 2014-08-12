@@ -30,7 +30,7 @@ def process_transactions(ids, password1, password2):
 # TODO: handling results for this?
 # TODO: security concerns sending pw1, pw2?
 # TODO: need to make this a transaction for atomicity or isolation?
-    
+
     try:
         transactions = Transaction.objects.select_for_update().filter(id__in=ids)
     except Transaction.DoesNotExist:
@@ -85,22 +85,27 @@ def process_transactions(ids, password1, password2):
 
             combined_sms_confirm = utils.consolidate_notification_sms(transactions)
 
-            send out confirmation SMS
-            for number, reference_numbers in combined_sms_confirm.iteritems():
-                response_status, message_id = smsgh.send_message_confirm(
-                    mobile_number=number,
-                    reference_numbers=reference_numbers
-                )
+            # send out confirmation SMS
+            # for number, reference_numbers in combined_sms_confirm.iteritems():
+            #     response_status, message_id = smsgh.send_message_confirm(
+            #         mobile_number=number,
+            #         reference_numbers=reference_numbers
+            #     )
 
-                for t in transactions.filter(notification_phone_number=number):
-                    t.update_after_sms_notification(
-                        response_status, message_id
-                    )
-            
-            return
+            #     for t in transactions.filter(notification_phone_number=number):
+            #         t.update_after_sms_notification(
+            #             response_status, message_id
+            #         )
+
+            result = 'SUCCESS'
+
     except AcceptException as e:
         log_error(e)
+        result = e.args[0]
     except requests.RequestException as e:
-        log_error('ERROR - ACCEPT (btc transfer request to blockchain): {}'.format(e))
+        message = 'ERROR - ACCEPT (btc transfer request to blockchain): {}'.format(repr(e))
+        log_error(message)
+        result = message
 
     transactions.update(state=Transaction.PAID)
+    return result
