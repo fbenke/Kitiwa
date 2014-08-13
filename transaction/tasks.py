@@ -84,16 +84,14 @@ def process_transactions(ids, password1, password2):
 
     except AcceptException as e:
         log_error(e)
-        result = e.args[0]
         transactions.update(state=Transaction.PAID)
-        return result
+        return repr(e)
 
     except requests.RequestException as e:
         message = 'ERROR - ACCEPT (btc transfer request to blockchain): {}'.format(repr(e))
         log_error(message)
-        result = message
         transactions.update(state=Transaction.PAID)
-        return result
+        return message
 
     combined_sms_confirm = utils.consolidate_notification_sms(transactions)
 

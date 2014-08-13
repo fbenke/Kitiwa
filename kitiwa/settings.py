@@ -305,6 +305,7 @@ BROKER_URL = os.environ.get('CLOUDAMQP_URL')
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 
 # Whitelist of allowed serialization formats
+# Json is considered safe in contrast to the default 'pickle'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
@@ -316,3 +317,5 @@ BROKER_POOL_LIMIT = int(os.environ.get('BROKER_POOL_LIMIT'))
 # Maximum number of retries before we give up re-establishing a connection to the AMQP broker.
 # If this is set to 0 or None, we will retry forever.
 BROKER_CONNECTION_MAX_RETRIES = 0
+
+# BROKER_USE_SSL = True
