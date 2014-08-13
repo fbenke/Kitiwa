@@ -297,9 +297,22 @@ NOTIFY_USER_CONF_REF_TEXT_MULTIPLE = 'The following bitcoin orders have been pro
 NOTIFY_USER_CONF_CALL_TO_ACTION = 'Please check your bitcoin wallet and confirm that you\'ve received it on our Facebook page: fb.com/kitiwaBTC'
 
 # Celery
+
+# Message Queue Address
 BROKER_URL = os.environ.get('CLOUDAMQP_URL')
+
+# Where to store
 CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
+
+# Whitelist of allowed serialization formats
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+# Set this number to the amount of allowed concurrent connections on your AMQP
+# provider, divided by the amount of active workers you have.
+BROKER_POOL_LIMIT = int(os.environ.get('BROKER_POOL_LIMIT'))
+
+# Maximum number of retries before we give up re-establishing a connection to the AMQP broker.
+# If this is set to 0 or None, we will retry forever.
+BROKER_CONNECTION_MAX_RETRIES = 0
