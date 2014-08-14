@@ -30,7 +30,7 @@ def process_transactions(ids, password1, password2):
 # TODO: need to make this a transaction for atomicity or isolation?
 
     try:
-        transactions = Transaction.objects.select_for_update().filter(id__in=ids)
+        transactions = Transaction.objects.filter(id__in=ids)
     except Transaction.DoesNotExist:
         log_error('ERROR - ACCEPT: Invalid ID')
         return

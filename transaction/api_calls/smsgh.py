@@ -58,7 +58,7 @@ def _send_message(mobile_number, content):
                   'Status: {}. Message: {}.'
         log_error(message.format(mobile_number, response_status, content))
         message_id = 'N/A'
-    except RequestException as e:
+    except (RequestException, ValueError) as e:
         message = 'ERROR - SMSGH: Failed to send message to {}.({}).'
         log_error(message.format(mobile_number, repr(e)))
         message_id = response_status = 'N/A'
